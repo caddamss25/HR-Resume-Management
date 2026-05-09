@@ -1,0 +1,75 @@
+# =============================
+# Server
+# =============================
+server.port=8080
+
+# =============================
+# Supabase PostgreSQL Database
+# =============================
+# HOW TO GET THESE:
+# → Go to supabase.com > Your Project > Settings > Database
+# → Copy the "Connection string" (URI format)
+# → Host = the part after @ and before :5432
+# → Example host: db.abcdefghijkl.supabase.co
+
+spring.datasource.url=jdbc:postgresql://db.tiroxygqsdmtcgjwaizz.supabase.co:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=Vikramsai123@
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Connection pool tuning for Supabase (free tier: ~15 direct connections max)
+spring.datasource.hikari.connection-timeout=20000
+spring.datasource.hikari.maximum-pool-size=3
+spring.datasource.hikari.minimum-idle=1
+spring.datasource.hikari.idle-timeout=120000
+spring.datasource.hikari.max-lifetime=300000
+spring.datasource.hikari.keepalive-time=60000
+spring.datasource.hikari.connection-test-query=SELECT 1
+
+# =============================
+# JPA / Hibernate
+# =============================
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.open-in-view=false
+# Suppress schema-not-found warning for Supabase public schema
+spring.jpa.properties.hibernate.default_schema=public
+
+# =============================
+# JWT
+# =============================
+# Generate a secret: run this command in terminal →
+#   powershell: [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])
+#   OR openssl: openssl rand -base64 32
+jwt.secret=dcb+Hrqfuvj9RBkOuUlTPpj3mz8odfewDVQWAHTHu4Q=
+jwt.expiration=86400000
+
+# =============================
+# Cloudinary Storage
+# =============================
+# HOW TO GET THESE:
+# → Go to cloudinary.com > Dashboard
+# → Copy your Cloud Name, API Key, and API Secret
+cloudinary.cloud-name=dsevkp7rt
+cloudinary.api-key=298684146784964
+cloudinary.api-secret=7mLggKfvYy2eKYUVhYFN4DfRJyA
+
+# =============================
+# File Upload
+# =============================
+spring.servlet.multipart.max-file-size=25MB
+spring.servlet.multipart.max-request-size=500MB
+spring.servlet.multipart.enabled=true
+
+# =============================
+# CORS — Frontend Origin
+# =============================
+frontend.url=http://localhost:5173
+
+# =============================
+# Logging
+# =============================
+logging.level.com.rms=DEBUG
+logging.level.org.springframework.security=WARN
