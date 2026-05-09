@@ -57,4 +57,21 @@ public class AuthController {
                     .body(Map.of("error", "An error occurred while updating password"));
         }
     }
+
+    @GetMapping("/users")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllHRUsers() {
+        return ResponseEntity.ok(authService.getAllHRUsers());
+    }
+
+    @DeleteMapping("/users/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUser(@PathVariable java.util.UUID id) {
+        try {
+            authService.deleteUser(id);
+            return ResponseEntity.ok(Map.of("message", "HR Recruiter deleted successfully"));
+        } catch (java.util.NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
