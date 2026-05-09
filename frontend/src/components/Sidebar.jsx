@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }) {
         }}>
           <i className="bi bi-shield-check-fill" style={{ color: '#fff', fontSize: '1.25rem' }} />
         </div>
-        <span style={{ letterSpacing: '-0.02em', fontWeight: 800 }}>CADDAM <span style={{ color: 'var(--rms-primary)' }}>RMS</span></span>
+        <span style={{ letterSpacing: '-0.02em', fontWeight: 800 }}>CADDAM <span style={{ color: 'var(--rms-primary)' }}>HR</span></span>
       </div>
 
       {/* Navigation */}
