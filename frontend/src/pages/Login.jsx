@@ -38,7 +38,7 @@ export default function Login() {
             }}>
               <i className="bi bi-shield-lock-fill" style={{ color: '#fff', fontSize: '1.5rem' }} />
             </div>
-            <span style={{ letterSpacing: '0.05em', fontWeight: 900 }}>CADDAM <span style={{ color: 'var(--rms-primary)' }}>RMS</span></span>
+            <span style={{ letterSpacing: '0.05em', fontWeight: 900 }}>CADDAM <span style={{ color: 'var(--rms-primary)' }}>HR</span></span>
           </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginBottom: 8, fontFamily: 'Outfit, sans-serif' }}>
             Enterprise Access
