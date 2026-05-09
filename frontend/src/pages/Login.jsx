@@ -66,7 +66,7 @@ export default function Login() {
           <div className="rms-form-group" style={{ marginBottom: 32 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <label className="rms-label" htmlFor="login-password" style={{ marginBottom: 0 }}>Password</label>
-              <a href="#" style={{ fontSize: '0.75rem', color: 'var(--rms-primary)', textDecoration: 'none', fontWeight: 700 }}>Recovery?</a>
+              {/* <a href="#" style={{ fontSize: '0.75rem', color: 'var(--rms-primary)', textDecoration: 'none', fontWeight: 700 }}>Recovery?</a> */}
             </div>
             <input
               id="login-password"
