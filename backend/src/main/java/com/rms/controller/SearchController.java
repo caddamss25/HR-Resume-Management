@@ -24,9 +24,10 @@ public class SearchController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String skill,
             @RequestParam(required = false) String role,
-            @RequestParam(required = false) Integer minExp) {
+            @RequestParam(required = false) Integer minExp,
+            @RequestParam(required = false) String status) {
 
-        List<CandidateDTO> results = searchService.search(keyword, skill, role, minExp);
+        List<CandidateDTO> results = searchService.search(keyword, skill, role, minExp, status);
         return ResponseEntity.ok(results);
     }
 }
