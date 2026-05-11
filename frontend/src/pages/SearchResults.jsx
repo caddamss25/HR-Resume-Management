@@ -27,7 +27,8 @@ export default function SearchResults() {
     keyword: searchParams.get('keyword') || '',
     skill: searchParams.get('skill') || '',
     role: searchParams.get('role') || '',
-    minExp: searchParams.get('minExp') || ''
+    minExp: searchParams.get('minExp') || '',
+    status: searchParams.get('status') || ''
   })
   const [candidateResults, setCandidateResults] = useState([])
   const [candidateLoading, setCandidateLoading] = useState(false)
@@ -64,6 +65,7 @@ export default function SearchResults() {
     if (filters.skill) params.set('skill', filters.skill)
     if (filters.role) params.set('role', filters.role)
     if (filters.minExp) params.set('minExp', filters.minExp)
+    if (filters.status) params.set('status', filters.status)
     setSearchParams(params)
     try {
       const { data } = await api.get(`/api/search?${params.toString()}`)
@@ -132,11 +134,11 @@ export default function SearchResults() {
           <div className="rms-card mb-4" style={{ borderRadius: '0 8px 8px 8px' }}>
             <form onSubmit={handleCandidateSearch} id="search-form">
               <div className="row g-3">
-                <div className="col-md-4">
-                  <input id="keyword-filter" type="text" className="rms-input" placeholder="Keyword: name, email, role..."
+                <div className="col-md-3">
+                  <input id="keyword-filter" type="text" className="rms-input" placeholder="Keyword: name, email..."
                     value={filters.keyword} onChange={e => setFilters(p => ({ ...p, keyword: e.target.value }))} />
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-2">
                   <input id="skill-filter" type="text" className="rms-input" placeholder="Skill (e.g. React)"
                     value={filters.skill} onChange={e => setFilters(p => ({ ...p, skill: e.target.value }))} />
                 </div>
@@ -155,6 +157,22 @@ export default function SearchResults() {
                   </select>
                 </div>
                 <div className="col-md-2">
+                  <select
+                    id="status-filter"
+                    className="rms-input"
+                    value={filters.status}
+                    onChange={e => setFilters(p => ({ ...p, status: e.target.value }))}
+                    style={{ appearance: 'auto', background: 'var(--rms-surface-2)', color: 'var(--rms-text)' }}
+                  >
+                    <option value="">Any Status</option>
+                    {Object.keys(STATUS_COLORS).map(statusKey => (
+                      <option key={statusKey} value={statusKey}>
+                        {statusKey.replace(/_/g, ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-2">
                   <input id="exp-filter" type="number" className="rms-input" placeholder="Min Exp (Years)" min="0"
                     value={filters.minExp} onChange={e => setFilters(p => ({ ...p, minExp: e.target.value }))} />
                 </div>
@@ -166,7 +184,7 @@ export default function SearchResults() {
                     : <><i className="bi bi-search" /> Search</>}
                 </button>
                 <button type="button" className="btn-rms-outline" onClick={() => {
-                  setFilters({ keyword: '', skill: '', role: '', minExp: '' })
+                  setFilters({ keyword: '', skill: '', role: '', minExp: '', status: '' })
                   setSearchParams({})
                   setCandidateResults([])
                   setCandidateSearched(false)
