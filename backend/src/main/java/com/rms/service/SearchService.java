@@ -17,11 +17,12 @@ public class SearchService {
     @Autowired
     private ResumeService resumeService;
 
-    public List<CandidateDTO> search(String keyword, String skill, String role, Integer minExp) {
+    public List<CandidateDTO> search(String keyword, String skill, String role, Integer minExp, String status) {
         // Normalize nulls and blanks
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         String sk = (skill != null && !skill.isBlank()) ? skill.trim() : null;
         String rl = (role != null && !role.isBlank()) ? role.trim() : null;
+        String st = (status != null && !status.isBlank()) ? status.trim() : null;
 
         return candidateRepository.findAllActiveWithResumes()
                 .stream()
@@ -50,6 +51,11 @@ public class SearchService {
                     // Min experience
                     if (minExp != null) {
                         if (c.getExperienceYears() == null || c.getExperienceYears() < minExp)
+                            return false;
+                    }
+                    // Recruitment Status
+                    if (st != null) {
+                        if (c.getRecruitmentStatus() == null || !c.getRecruitmentStatus().equalsIgnoreCase(st))
                             return false;
                     }
                     return true;
