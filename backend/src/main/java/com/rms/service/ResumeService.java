@@ -73,12 +73,14 @@ public class ResumeService {
             String recruitedFor,
             String candidateNotes) throws IOException {
 
-        Candidate candidate;
+        final Candidate candidate;
+        final UUID finalCandidateId;
         if (candidateId != null) {
             candidate = candidateRepository.findById(candidateId).orElse(null);
+            finalCandidateId = candidateId;
         } else {
             candidate = createCandidateFromFile(file, resumeStatus, recruitedFor, candidateNotes);
-            candidateId = candidate.getId();
+            finalCandidateId = candidate.getId();
         }
 
         User uploader = userRepository.findByEmail(uploaderEmail)
@@ -86,8 +88,11 @@ public class ResumeService {
 
         validateFile(file);
 
-        String storagePath = buildStoragePath(candidateId, file.getOriginalFilename());
-        String publicUrl = uploadToCloudinary(file, storagePath);
+        final String storagePath = buildStoragePath(finalCandidateId, file.getOriginalFilename());
+        final String publicUrl = uploadToCloudinary(file, storagePath);
+        final String finalResumeStatus = resumeStatus != null ? resumeStatus : (candidate != null ? candidate.getRecruitmentStatus() : "APPLIED");
+        final String finalRecruitedFor = recruitedFor != null ? recruitedFor : (candidate != null ? candidate.getJobRole() : null);
+        final String finalNotes = candidateNotes != null ? candidateNotes : (candidate != null ? candidate.getSummary() : null);
 
         // Update candidate with resume info using raw JDBC execute
         String sql = "UPDATE candidates SET resume_url = ?, resume_file_name = ?, resume_storage_path = ?, recruitment_status = ?, job_role = ?, summary = ? WHERE id = ?";
@@ -96,19 +101,19 @@ public class ResumeService {
                 ps.setString(1, publicUrl);
                 ps.setString(2, file.getOriginalFilename());
                 ps.setString(3, storagePath);
-                ps.setString(4, resumeStatus != null ? resumeStatus : candidate.getRecruitmentStatus());
-                ps.setString(5, recruitedFor != null ? recruitedFor : candidate.getJobRole());
-                ps.setString(6, candidateNotes != null ? candidateNotes : candidate.getSummary());
-                ps.setString(7, candidate.getId().toString());
+                ps.setString(4, finalResumeStatus);
+                ps.setString(5, finalRecruitedFor);
+                ps.setString(6, finalNotes);
+                ps.setString(7, finalCandidateId.toString());
                 ps.execute();
             }
             return null;
         });
 
         // Refresh candidate from DB to return accurate response
-        candidate = candidateRepository.findById(candidateId).orElse(candidate);
+        Candidate updatedCandidate = candidateRepository.findById(finalCandidateId).orElse(candidate);
         
-        return toResponse(candidate, uploader);
+        return toResponse(updatedCandidate, uploader);
     }
 
     public BulkUploadResponse bulkUpload(
@@ -169,6 +174,15 @@ public class ResumeService {
         }
     }
 
+    public void cancelJob(UUID jobId) {
+        List<CompletableFuture<?>> futures = activeJobs.remove(jobId);
+        if (futures != null) {
+            for (CompletableFuture<?> f : futures) {
+                f.cancel(true);
+            }
+        }
+    }
+
     private ProcessResult processSingleFile(
             MultipartFile file, Candidate sharedCandidate, User uploader,
             String resumeStatus, String recruitedFor, String notes) {
@@ -177,13 +191,16 @@ public class ResumeService {
 
         try {
             validateFile(file);
-            Candidate currentCandidate;
+            final Candidate currentCandidate;
             synchronized(this) {
                 currentCandidate = sharedCandidate != null ? sharedCandidate : createCandidateFromFile(file, resumeStatus, recruitedFor, notes);
             }
 
-            String storagePath = buildStoragePath(currentCandidate.getId(), file.getOriginalFilename());
-            String publicUrl = uploadToCloudinary(file, storagePath);
+            final String storagePath = buildStoragePath(currentCandidate.getId(), file.getOriginalFilename());
+            final String publicUrl = uploadToCloudinary(file, storagePath);
+            final String finalStatus = resumeStatus != null ? resumeStatus : currentCandidate.getRecruitmentStatus();
+            final String finalRole = recruitedFor != null ? recruitedFor : currentCandidate.getJobRole();
+            final String finalId = currentCandidate.getId().toString();
 
             String sql = "UPDATE candidates SET resume_url = ?, resume_file_name = ?, resume_storage_path = ?, recruitment_status = ?, job_role = ? WHERE id = ?";
             jdbcTemplate.execute((java.sql.Connection conn) -> {
@@ -191,16 +208,16 @@ public class ResumeService {
                     ps.setString(1, publicUrl);
                     ps.setString(2, file.getOriginalFilename());
                     ps.setString(3, storagePath);
-                    ps.setString(4, resumeStatus != null ? resumeStatus : currentCandidate.getRecruitmentStatus());
-                    ps.setString(5, recruitedFor != null ? recruitedFor : currentCandidate.getJobRole());
-                    ps.setString(6, currentCandidate.getId().toString());
+                    ps.setString(4, finalStatus);
+                    ps.setString(5, finalRole);
+                    ps.setString(6, finalId);
                     ps.execute();
                 }
                 return null;
             });
 
-            currentCandidate = candidateRepository.findById(currentCandidate.getId()).orElse(currentCandidate);
-            return ProcessResult.ok(toResponse(currentCandidate, uploader));
+            Candidate updated = candidateRepository.findById(currentCandidate.getId()).orElse(currentCandidate);
+            return ProcessResult.ok(toResponse(updated, uploader));
 
         } catch (Exception e) {
             return ProcessResult.fail(file.getOriginalFilename() + ": " + e.getMessage());
@@ -208,15 +225,16 @@ public class ResumeService {
     }
 
     private Candidate createCandidateFromFile(MultipartFile file, String status, String role, String notes) {
-        String id = UUID.randomUUID().toString();
+        final String id = UUID.randomUUID().toString();
         String name = file.getOriginalFilename();
         if (name != null && name.lastIndexOf('.') > 0) name = name.substring(0, name.lastIndexOf('.'));
+        final String finalName = name;
         
         String sql = "INSERT INTO candidates (id, name, status, recruitment_status, summary, job_role, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))";
         jdbcTemplate.execute((java.sql.Connection conn) -> {
             try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, id);
-                ps.setString(2, name);
+                ps.setString(2, finalName);
                 ps.setString(3, "ACTIVE");
                 ps.setString(4, status != null ? status : "APPLIED");
                 ps.setString(5, notes);
@@ -229,12 +247,13 @@ public class ResumeService {
     }
 
     public ResumeUploadResponse updateResumeStatus(UUID id, String resumeStatus, String recruitedFor) {
+        final String finalId = id.toString();
         String sql = "UPDATE candidates SET recruitment_status = COALESCE(?, recruitment_status), job_role = COALESCE(?, job_role) WHERE id = ?";
         jdbcTemplate.execute((java.sql.Connection conn) -> {
             try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, resumeStatus);
                 ps.setString(2, recruitedFor);
-                ps.setString(3, id.toString());
+                ps.setString(3, finalId);
                 ps.execute();
             }
             return null;
@@ -312,7 +331,6 @@ public class ResumeService {
     }
 
     public Map<String, Object> purgeOrphanedRecords(String adminPassword, String requestUserEmail) {
-        // Simple mock response or implement similar to above if needed
         return Map.of("message", "Purge not implemented in JDBC mode yet");
     }
 
