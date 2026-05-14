@@ -30,14 +30,14 @@ public class CandidateService {
                 .map(this::toDTO);
     }
 
-    @Transactional(readOnly = true)
+
     public CandidateDTO getCandidateById(UUID id) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
         return toDTOWithResumes(candidate);
     }
 
-    @Transactional
+
     public CandidateDTO createCandidate(CandidateDTO dto) {
         if (dto.getEmail() != null &&
             candidateRepository.findAll().stream()
@@ -48,7 +48,7 @@ public class CandidateService {
         return toDTO(candidateRepository.save(candidate));
     }
 
-    @Transactional
+
     public CandidateDTO updateCandidate(UUID id, CandidateDTO dto) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
@@ -66,7 +66,7 @@ public class CandidateService {
         return toDTO(candidateRepository.save(candidate));
     }
 
-    @Transactional
+
     public void deleteCandidate(UUID id) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
@@ -80,7 +80,7 @@ public class CandidateService {
         candidateRepository.delete(candidate);
     }
 
-    @Transactional
+
     public CandidateDTO updateRecruitmentStatus(UUID id, String recruitmentStatus) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
