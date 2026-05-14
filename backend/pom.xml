@@ -40,11 +40,17 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- PostgreSQL Driver -->
+        <!-- Turso LibSQL Driver -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <groupId>com.dbeaver.jdbc</groupId>
+            <artifactId>com.dbeaver.jdbc.driver.libsql</artifactId>
+            <version>1.0.6</version>
+        </dependency>
+
+        <!-- Hibernate Community Dialects (for SQLite) -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-community-dialects</artifactId>
         </dependency>
 
         <!-- JWT -->
@@ -90,6 +96,23 @@
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-http44</artifactId>
             <version>1.36.0</version>
+        </dependency>
+
+        <!-- Dotenv to load .env variables -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
         </dependency>
 
         <!-- Test -->
