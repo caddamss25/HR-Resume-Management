@@ -24,7 +24,7 @@ public class SearchService {
         String rl = (role != null && !role.isBlank()) ? role.trim() : null;
         String st = (status != null && !status.isBlank()) ? status.trim() : null;
 
-        return candidateRepository.findAllActiveWithResumes()
+        return candidateRepository.findAllActive()
                 .stream()
                 .filter(c -> {
                     // Keyword: match name, email, jobRole
