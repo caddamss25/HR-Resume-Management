@@ -7,11 +7,14 @@ import com.rms.model.User;
 import com.rms.repository.UserRepository;
 import com.rms.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -28,19 +31,34 @@ public class AuthService {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     public LoginResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already registered: " + request.getEmail());
         }
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : "RECRUITER")
-                .build();
+        String id = UUID.randomUUID().toString();
+        String name = request.getName();
+        String email = request.getEmail();
+        String password = passwordEncoder.encode(request.getPassword());
+        String role = request.getRole() != null ? request.getRole() : "RECRUITER";
 
-        User saved = userRepository.save(user);
+        String sql = "INSERT INTO users (id, name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))";
+        jdbcTemplate.execute((java.sql.Connection conn) -> {
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, id);
+                ps.setString(2, name);
+                ps.setString(3, email);
+                ps.setString(4, password);
+                ps.setString(5, role);
+                ps.execute();
+            }
+            return null;
+        });
+
+        User saved = userRepository.findById(UUID.fromString(id)).orElseThrow();
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(saved.getEmail());
         String token = jwtUtil.generateToken(userDetails, saved.getRole());
@@ -84,8 +102,16 @@ public class AuthService {
             throw new BadCredentialsException("Invalid current password");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        String sql = "UPDATE users SET password = ? WHERE email = ?";
+        jdbcTemplate.execute((java.sql.Connection conn) -> {
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, encodedPassword);
+                ps.setString(2, email);
+                ps.execute();
+            }
+            return null;
+        });
     }
 
     public java.util.List<User> getAllHRUsers() {
@@ -96,6 +122,6 @@ public class AuthService {
         if (!userRepository.existsById(id)) {
             throw new java.util.NoSuchElementException("User not found with id: " + id);
         }
-        userRepository.deleteById(id);
+        jdbcTemplate.execute("DELETE FROM users WHERE id = '" + id + "'");
     }
 }
