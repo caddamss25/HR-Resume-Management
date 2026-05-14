@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -78,7 +77,7 @@ public class ResumeService {
     // SINGLE UPLOAD
     // ================================================================
 
-    @Transactional
+
     public ResumeUploadResponse uploadResume(
             MultipartFile file,
             UUID candidateId,
@@ -135,7 +134,7 @@ public class ResumeService {
     // BULK UPLOAD — 50+ files at once
     // ================================================================
 
-    @Transactional
+
     public BulkUploadResponse bulkUpload(
             MultipartFile[] files,
             UUID candidateId,
@@ -292,7 +291,7 @@ public class ResumeService {
     // UPDATE RESUME STATUS
     // ================================================================
 
-    @Transactional
+
     public ResumeUploadResponse updateResumeStatus(UUID id, String resumeStatus, String recruitedFor) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
@@ -305,21 +304,21 @@ public class ResumeService {
     // GET RESUMES — public URLs are instant, no regeneration needed
     // ================================================================
 
-    @Transactional(readOnly = true)
+
     public List<ResumeUploadResponse> getAllResumes() {
         return candidateRepository.findAll().stream()
                 .filter(c -> c.getResumeUrl() != null)
                 .map(c -> toResponse(c, null)).toList();
     }
 
-    @Transactional(readOnly = true)
+
     public ResumeUploadResponse getResumeById(UUID id) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
         return toResponse(candidate, null);
     }
 
-    @Transactional(readOnly = true)
+
     public String getPublicDownloadUrl(UUID id) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
@@ -329,7 +328,7 @@ public class ResumeService {
         return candidate.getResumeUrl();
     }
 
-    @Transactional(readOnly = true)
+
     public List<ResumeUploadResponse> getRecentResumes(int count) {
         return candidateRepository.findAll().stream()
                 .filter(c -> c.getResumeUrl() != null)
@@ -338,7 +337,7 @@ public class ResumeService {
                 .map(c -> toResponse(c, null)).toList();
     }
 
-    @Transactional(readOnly = true)
+
     public List<ResumeUploadResponse> searchByFileName(String fileName) {
         if (fileName == null || fileName.isBlank()) return getAllResumes();
         return candidateRepository.findAll().stream()
@@ -346,7 +345,7 @@ public class ResumeService {
                 .map(c -> toResponse(c, null)).toList();
     }
 
-    @Transactional(readOnly = true)
+
     public long countActive() {
         return candidateRepository.count();
     }
@@ -355,7 +354,7 @@ public class ResumeService {
     // GET ALL WITH PUBLIC URLS (for bulk delete page)
     // ================================================================
 
-    @Transactional(readOnly = true)
+
     public List<ResumeUploadResponse> getAllWithFreshSignedUrls() {
         return getAllResumes();
     }
@@ -364,7 +363,7 @@ public class ResumeService {
     // SINGLE DELETE
     // ================================================================
 
-    @Transactional
+
     public void deleteResume(UUID id, String adminPassword, String requestUserEmail) {
         User requestUser = userRepository.findByEmail(requestUserEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -387,7 +386,7 @@ public class ResumeService {
     // BULK DELETE (password-protected)
     // ================================================================
 
-    @Transactional
+
     public Map<String, Object> bulkDelete(List<UUID> candidateIds, String adminPassword, String requestUserEmail) {
         User requestUser = userRepository.findByEmail(requestUserEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -422,7 +421,7 @@ public class ResumeService {
     // With public URLs we check existence by doing a HEAD request
     // ================================================================
 
-    @Transactional
+
     public Map<String, Object> purgeOrphanedRecords(String adminPassword, String requestUserEmail) {
         User requestUser = userRepository.findByEmail(requestUserEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
