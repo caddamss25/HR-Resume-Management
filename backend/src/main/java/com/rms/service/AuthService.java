@@ -137,7 +137,7 @@ public class AuthService {
     public java.util.List<User> getAllHRUsers() {
         // Use JPA for reading, it's safer and should work fine with Strings
         return userRepository.findAll().stream()
-                .filter(u -> !"ADMIN".equalsIgnoreCase(u.getRole()))
+                // .filter(u -> !"ADMIN".equalsIgnoreCase(u.getRole()))
                 .toList();
     }
 
