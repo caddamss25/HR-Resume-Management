@@ -6,15 +6,22 @@ import com.rms.dto.RegisterRequest;
 import com.rms.model.User;
 import com.rms.repository.UserRepository;
 import com.rms.security.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -28,19 +35,44 @@ public class AuthService {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     public LoginResponse register(RegisterRequest request) {
+        logger.info("[AUTH] Registering user: {}", request.getEmail());
+        
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already registered: " + request.getEmail());
         }
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : "RECRUITER")
-                .build();
+        final String id = UUID.randomUUID().toString();
+        final String name = request.getName();
+        final String email = request.getEmail();
+        final String password = passwordEncoder.encode(request.getPassword());
+        final String role = (request.getRole() != null && !request.getRole().isBlank()) 
+                           ? request.getRole() : "HR_RECRUITER";
 
-        User saved = userRepository.save(user);
+        try {
+            String sql = "INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
+            jdbcTemplate.execute((java.sql.Connection conn) -> {
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, id);
+                    ps.setString(2, name);
+                    ps.setString(3, email);
+                    ps.setString(4, password);
+                    ps.setString(5, role);
+                    ps.execute();
+                }
+                return null;
+            });
+            logger.info("[AUTH] User inserted successfully: {}", email);
+        } catch (Exception e) {
+            logger.error("[AUTH] FATAL ERROR during registration for {}: {}", email, e.getMessage());
+            throw new RuntimeException("Database error: " + e.getMessage());
+        }
+
+        User saved = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found after save"));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(saved.getEmail());
         String token = jwtUtil.generateToken(userDetails, saved.getRole());
@@ -84,18 +116,27 @@ public class AuthService {
             throw new BadCredentialsException("Invalid current password");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        final String encodedPassword = passwordEncoder.encode(newPassword);
+        final String finalEmail = email;
+        jdbcTemplate.execute((java.sql.Connection conn) -> {
+            String sql = "UPDATE users SET password = ? WHERE email = ?";
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, encodedPassword);
+                ps.setString(2, finalEmail);
+                ps.execute();
+            }
+            return null;
+        });
     }
 
     public java.util.List<User> getAllHRUsers() {
-        return userRepository.findByRoleNot("ADMIN");
+        // Use JPA for reading, it's safer and should work fine with Strings
+        return userRepository.findAll().stream()
+                .filter(u -> !"ADMIN".equalsIgnoreCase(u.getRole()))
+                .toList();
     }
 
-    public void deleteUser(java.util.UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new java.util.NoSuchElementException("User not found with id: " + id);
-        }
-        userRepository.deleteById(id);
+    public void deleteUser(String id) {
+        jdbcTemplate.execute("DELETE FROM users WHERE id = '" + id + "'");
     }
 }

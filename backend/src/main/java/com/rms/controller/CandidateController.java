@@ -31,7 +31,7 @@ public class CandidateController {
 
     // GET /api/candidates/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCandidateById(@PathVariable UUID id) {
+    public ResponseEntity<?> getCandidateById(@PathVariable String id) {
         try {
             return ResponseEntity.ok(candidateService.getCandidateById(id));
         } catch (NoSuchElementException e) {
@@ -53,7 +53,7 @@ public class CandidateController {
 
     // PUT /api/candidates/{id} (RECRUITER, MANAGER, ADMIN)
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCandidate(@PathVariable UUID id, @RequestBody CandidateDTO dto) {
+    public ResponseEntity<?> updateCandidate(@PathVariable String id, @RequestBody CandidateDTO dto) {
         try {
             return ResponseEntity.ok(candidateService.updateCandidate(id, dto));
         } catch (NoSuchElementException e) {
@@ -64,7 +64,7 @@ public class CandidateController {
     // DELETE /api/candidates/{id} (ADMIN only — soft delete)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteCandidate(@PathVariable UUID id) {
+    public ResponseEntity<?> deleteCandidate(@PathVariable String id) {
         try {
             candidateService.deleteCandidate(id);
             return ResponseEntity.ok(Map.of("message", "Candidate and all associated resumes deleted permanently"));
@@ -76,7 +76,7 @@ public class CandidateController {
     // PATCH /api/candidates/{id}/recruitment-status (HR/RECRUITER/ADMIN)
     @PatchMapping("/{id}/recruitment-status")
     public ResponseEntity<?> updateRecruitmentStatus(
-            @PathVariable UUID id,
+            @PathVariable String id,
             @RequestParam String status) {
         try {
             return ResponseEntity.ok(candidateService.updateRecruitmentStatus(id, status));

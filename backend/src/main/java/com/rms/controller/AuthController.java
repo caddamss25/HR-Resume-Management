@@ -66,7 +66,7 @@ public class AuthController {
 
     @DeleteMapping("/users/{id}")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable java.util.UUID id) {
+    public ResponseEntity<?> deleteUser(@PathVariable String id) {
         try {
             authService.deleteUser(id);
             return ResponseEntity.ok(Map.of("message", "HR Recruiter deleted successfully"));

@@ -10,10 +10,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
-public interface CandidateRepository extends JpaRepository<Candidate, UUID>,
+public interface CandidateRepository extends JpaRepository<Candidate, String>,
         JpaSpecificationExecutor<Candidate> {
 
     // Find active candidates with pagination

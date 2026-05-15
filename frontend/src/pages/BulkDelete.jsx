@@ -8,13 +8,13 @@ import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 
 const RESUME_STATUSES = [
-  { value: 'APPLIED',             label: '📩 Applied',              color: '#4f8ef7' },
-  { value: 'UNDER_REVIEW',        label: '🔍 Under Review',          color: '#f59e0b' },
-  { value: 'SHORTLISTED',         label: '✅ Shortlisted',           color: '#06d6a0' },
-  { value: 'INTERVIEW_SCHEDULED', label: '📅 Interview Scheduled',   color: '#7c3aed' },
-  { value: 'SELECTED',            label: '🎉 Selected',              color: '#10b981' },
-  { value: 'REJECTED',            label: '❌ Rejected',              color: '#ef4444' },
-  { value: 'ON_HOLD',             label: '⏸️ On Hold',               color: '#6b7280' }
+  { value: 'APPLIED', label: 'Applied', color: '#4f8ef7' },
+  { value: 'UNDER_REVIEW', label: 'Under Review', color: '#f59e0b' },
+  { value: 'SHORTLISTED', label: 'Shortlisted', color: '#06d6a0' },
+  { value: 'INTERVIEW_SCHEDULED', label: 'Interview Scheduled', color: '#7c3aed' },
+  { value: 'SELECTED', label: 'Selected', color: '#10b981' },
+  { value: 'REJECTED', label: 'Rejected', color: '#ef4444' },
+  { value: 'ON_HOLD', label: 'On Hold', color: '#6b7280' }
 ]
 
 const STATUS_COLOR = Object.fromEntries(RESUME_STATUSES.map(s => [s.value, s.color]))
@@ -23,20 +23,20 @@ const STEPS = { LOAD: 1, DOWNLOAD: 2, CONFIRM: 3, DONE: 4 }
 
 
 export default function BulkDelete() {
-  const [resumes, setResumes]               = useState([])
-  const [selected, setSelected]             = useState(new Set())
-  const [loading, setLoading]               = useState(true)
-  const [step, setStep]                     = useState(STEPS.LOAD)
-  const [password, setPassword]             = useState('')
-  const [deleting, setDeleting]             = useState(false)
-  const [deleteResult, setDeleteResult]     = useState(null)
-  const [downloadDone, setDownloadDone]     = useState(false)
-  const [purging, setPurging]               = useState(false)
-  const [purgeResult, setPurgeResult]       = useState(null)
-  const [purgePassword, setPurgePassword]   = useState('')
-  const [showPurgeBox, setShowPurgeBox]     = useState(false)
+  const [resumes, setResumes] = useState([])
+  const [selected, setSelected] = useState(new Set())
+  const [loading, setLoading] = useState(true)
+  const [step, setStep] = useState(STEPS.LOAD)
+  const [password, setPassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteResult, setDeleteResult] = useState(null)
+  const [downloadDone, setDownloadDone] = useState(false)
+  const [purging, setPurging] = useState(false)
+  const [purgeResult, setPurgeResult] = useState(null)
+  const [purgePassword, setPurgePassword] = useState('')
+  const [showPurgeBox, setShowPurgeBox] = useState(false)
   const [editingStatusId, setEditingStatusId] = useState(null)
-  const [updatingId, setUpdatingId]         = useState(null)
+  const [updatingId, setUpdatingId] = useState(null)
 
   const [pwdModalConfig, setPwdModalConfig] = useState({ isOpen: false, action: null })
 
@@ -62,7 +62,7 @@ export default function BulkDelete() {
     })
   }
 
-  const selectAll  = () => setSelected(new Set(resumes.map(r => r.id)))
+  const selectAll = () => setSelected(new Set(resumes.map(r => r.id)))
   const selectNone = () => setSelected(new Set())
 
   // ── Inline status update ──────────────────────────────────────────
@@ -84,7 +84,7 @@ export default function BulkDelete() {
   const handleDownloadAll = async () => {
     if (selected.size === 0) { toast.error('Select at least one resume to delete'); return }
     const toDownload = resumes.filter(r => selected.has(r.id) && r.signedUrl)
-    const noUrl      = resumes.filter(r => selected.has(r.id) && !r.signedUrl)
+    const noUrl = resumes.filter(r => selected.has(r.id) && !r.signedUrl)
 
     if (toDownload.length === 0) {
       toast.warn(`None of the ${selected.size} selected resume(s) have a download URL. You can still delete the records.`, { autoClose: 6000 })
@@ -98,7 +98,7 @@ export default function BulkDelete() {
     try {
       const zip = new JSZip()
       const folder = zip.folder("Resumes")
-      
+
       let successCount = 0
       for (const resume of toDownload) {
         try {
@@ -119,9 +119,9 @@ export default function BulkDelete() {
 
       const zipBlob = await zip.generateAsync({ type: "blob" })
       saveAs(zipBlob, "resumes.zip")
-      
+
       toast.update(toastId, { render: `Zipped ${successCount} file(s) successfully!`, type: 'success', isLoading: false, autoClose: 3000 })
-      
+
       setDownloadDone(true)
       setStep(STEPS.CONFIRM)
     } catch (err) {
@@ -172,13 +172,13 @@ export default function BulkDelete() {
 
   return (
     <div className="fade-in" onClick={() => setEditingStatusId(null)}>
-      
+
       <PasswordModal
         isOpen={pwdModalConfig.isOpen}
         onClose={() => setPwdModalConfig({ isOpen: false, action: null })}
         onSubmit={handlePasswordSubmit}
         title={pwdModalConfig.action === 'BULK_DELETE' ? 'Confirm Bulk Deletion' : 'Confirm Purge'}
-        message={pwdModalConfig.action === 'BULK_DELETE' 
+        message={pwdModalConfig.action === 'BULK_DELETE'
           ? `You are about to delete ${selected.size} resume(s). This cannot be undone.`
           : `You are about to purge ${orphanedCount} orphaned records. This cannot be undone.`}
         confirmText={pwdModalConfig.action === 'BULK_DELETE' ? 'Delete Resumes' : 'Purge Records'}

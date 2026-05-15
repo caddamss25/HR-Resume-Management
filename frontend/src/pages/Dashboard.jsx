@@ -125,16 +125,16 @@ export default function Dashboard() {
             Open Pipeline <i className="bi bi-arrow-right" />
           </Link>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           {STAGES.map((stage, i) => {
             const count = pipelineCounts[stage.key] || 0
             const total = stats.resumes || 1
             const width = Math.max((count / total) * 100, 5) // Min width for visibility
-            
+
             return (
               <div key={stage.key} style={{ flex: width, minWidth: 60, transition: 'all 0.5s ease' }}>
-                <div style={{ 
+                <div style={{
                   height: 12, background: stage.color, borderRadius: 6, marginBottom: 12,
                   boxShadow: `0 0 15px ${stage.color}44`, opacity: 0.9
                 }} />
@@ -156,7 +156,7 @@ export default function Dashboard() {
               <i className="bi bi-lightning-charge-fill" style={{ color: 'var(--rms-warning)' }} />
               Recent Candidates
             </h2>
-            
+
             {recent.length === 0 ? (
               <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--rms-text-dim)' }}>
                 <i className="bi bi-inbox" style={{ fontSize: '3rem', display: 'block', marginBottom: 16, opacity: 0.2 }} />
@@ -185,7 +185,7 @@ export default function Dashboard() {
                           </div>
                         </td>
                         <td>
-                          <span style={{ 
+                          <span style={{
                             padding: '4px 10px', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700,
                             background: 'rgba(255, 255, 255, 0.05)', color: 'var(--rms-text-muted)',
                             border: '1px solid var(--rms-border)'
@@ -195,7 +195,7 @@ export default function Dashboard() {
                         </td>
                         <td style={{ fontSize: '0.85rem', color: 'var(--rms-text-dim)' }}>{formatDate(r.uploadedAt)}</td>
                         <td style={{ textAlign: 'right' }}>
-                          <ResumeViewButton resumeId={r.id} publicUrl={r.signedUrl} hasFile={!!r.signedUrl} 
+                          <ResumeViewButton resumeId={r.id} publicUrl={r.signedUrl} hasFile={!!r.signedUrl}
                             style={{ padding: '6px 12px', fontSize: '0.75rem' }} />
                         </td>
                       </tr>
@@ -228,15 +228,15 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div style={{ 
-              marginTop: 'auto', paddingTop: 24, borderTop: '1px solid var(--rms-border)', 
-              display: 'flex', alignItems: 'center', gap: 14, color: 'var(--rms-text-dim)' 
+            <div style={{
+              marginTop: 'auto', paddingTop: 24, borderTop: '1px solid var(--rms-border)',
+              display: 'flex', alignItems: 'center', gap: 14, color: 'var(--rms-text-dim)'
             }}>
               <div style={{ position: 'relative' }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rms-accent)', boxShadow: '0 0 10px var(--rms-accent)' }} />
                 <div style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid var(--rms-accent)', animation: 'ping 1.5s infinite' }} />
               </div>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Neon DB Production Active</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Turso DB Production Active</span>
             </div>
           </div>
         </div>

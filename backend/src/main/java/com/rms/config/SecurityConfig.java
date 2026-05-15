@@ -48,8 +48,8 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // Public — auth endpoints
-                .requestMatchers("/api/auth/**").permitAll()
+                // Public — auth endpoints and error page
+                .requestMatchers("/api/auth/**", "/error").permitAll()
                 // Both ADMIN and HR_RECRUITER can do everything
                 .anyRequest().hasAnyRole("ADMIN", "HR_RECRUITER")
             )

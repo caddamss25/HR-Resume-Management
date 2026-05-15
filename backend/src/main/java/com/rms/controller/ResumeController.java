@@ -29,7 +29,7 @@ public class ResumeController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadResume(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "candidateId", required = false) UUID candidateId,
+            @RequestParam(value = "candidateId", required = false) String candidateId,
             @RequestParam(value = "resumeStatus", defaultValue = "APPLIED") String resumeStatus,
             @RequestParam(value = "recruitedFor", required = false) String recruitedFor,
             @RequestParam(value = "candidateNotes", required = false) String candidateNotes,
@@ -54,7 +54,7 @@ public class ResumeController {
     @PostMapping("/bulk-upload")
     public ResponseEntity<?> bulkUpload(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam(value = "candidateId", required = false) UUID candidateId,
+            @RequestParam(value = "candidateId", required = false) String candidateId,
             @RequestParam(value = "resumeStatus", defaultValue = "APPLIED") String resumeStatus,
             @RequestParam(value = "recruitedFor", required = false) String recruitedFor,
             @RequestParam(value = "candidateNotes", required = false) String candidateNotes,
@@ -71,7 +71,7 @@ public class ResumeController {
         }
     }
     @PostMapping("/bulk-upload/cancel/{jobId}")
-    public ResponseEntity<?> cancelBulkUpload(@PathVariable UUID jobId) {
+    public ResponseEntity<?> cancelBulkUpload(@PathVariable String jobId) {
         resumeService.cancelJob(jobId);
         return ResponseEntity.ok(Map.of("message", "Cancellation request sent for job: " + jobId));
     }
@@ -122,7 +122,7 @@ public class ResumeController {
     // GET SINGLE
     // ─────────────────────────────────────────────
     @GetMapping("/{id}")
-    public ResponseEntity<?> getResumeById(@PathVariable UUID id) {
+    public ResponseEntity<?> getResumeById(@PathVariable String id) {
         try {
             return ResponseEntity.ok(resumeService.getResumeById(id));
         } catch (NoSuchElementException e) {
@@ -135,7 +135,7 @@ public class ResumeController {
     // Always generates a brand-new signed URL — never stale/expired
     // ─────────────────────────────────────────────
     @GetMapping("/{id}/view")
-    public ResponseEntity<?> getFreshViewUrl(@PathVariable UUID id) {
+    public ResponseEntity<?> getFreshViewUrl(@PathVariable String id) {
         try {
             String url = resumeService.getPublicDownloadUrl(id);
             return ResponseEntity.ok(Map.of("url", url));
@@ -151,7 +151,7 @@ public class ResumeController {
     // ─────────────────────────────────────────────
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(
-            @PathVariable UUID id,
+            @PathVariable String id,
             @RequestParam(required = false) String resumeStatus,
             @RequestParam(required = false) String recruitedFor) {
         try {
@@ -166,7 +166,7 @@ public class ResumeController {
     // ─────────────────────────────────────────────
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteResume(
-            @PathVariable UUID id,
+            @PathVariable String id,
             @RequestParam("password") String password,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -199,7 +199,7 @@ public class ResumeController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Password is required"));
             }
 
-            List<UUID> ids = idStrings.stream().map(UUID::fromString).toList();
+            List<String> ids = idStrings;
             Map<String, Object> result = resumeService.bulkDelete(
                     ids, password, userDetails.getUsername());
             return ResponseEntity.ok(result);

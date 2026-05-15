@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CandidateDTO {
-    private UUID id;
+    private String id;
+    private String candidateId;
 
     @NotBlank(message = "Name is required")
     private String name;
@@ -39,7 +39,7 @@ public class CandidateDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ResumeDTO {
-        private UUID id;
+        private String id;
         private String fileName;
         private String signedUrl;
         private String status;

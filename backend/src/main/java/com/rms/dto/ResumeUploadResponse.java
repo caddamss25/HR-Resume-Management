@@ -13,8 +13,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResumeUploadResponse {
-    private UUID id;
-    private UUID candidateId;
+    private String id;
+    private String candidateId;
     private String candidateName;
     private String fileName;
     private String signedUrl;

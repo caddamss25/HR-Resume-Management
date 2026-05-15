@@ -31,7 +31,7 @@ public class AdminController {
      * Delete an HR user by ID.
      */
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteHRUser(@PathVariable UUID id) {
+    public ResponseEntity<?> deleteHRUser(@PathVariable String id) {
         try {
             authService.deleteUser(id);
             return ResponseEntity.ok(Map.of("message", "User deleted successfully"));

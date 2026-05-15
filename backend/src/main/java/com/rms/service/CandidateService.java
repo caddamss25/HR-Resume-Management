@@ -8,8 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,72 +24,92 @@ public class CandidateService {
     @Autowired
     private ResumeService resumeService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     public Page<CandidateDTO> getAllCandidates(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return candidateRepository.findByStatus("ACTIVE", pageable)
                 .map(this::toDTO);
     }
 
-    @Transactional(readOnly = true)
-    public CandidateDTO getCandidateById(UUID id) {
+    public CandidateDTO getCandidateById(String id) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
         return toDTOWithResumes(candidate);
     }
 
-    @Transactional
     public CandidateDTO createCandidate(CandidateDTO dto) {
-        if (dto.getEmail() != null &&
-            candidateRepository.findAll().stream()
-                .anyMatch(c -> c.getEmail() != null && c.getEmail().equals(dto.getEmail()))) {
-            throw new IllegalArgumentException("Email already in use: " + dto.getEmail());
-        }
-        Candidate candidate = fromDTO(dto);
-        return toDTO(candidateRepository.save(candidate));
+        final String id = UUID.randomUUID().toString();
+        
+        String sql = "INSERT INTO candidates (id, name, email, phone, experience_years, job_role, status, recruitment_status, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, datetime('now'))";
+        jdbcTemplate.execute((java.sql.Connection conn) -> {
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, id);
+                ps.setString(2, dto.getName());
+                ps.setString(3, dto.getEmail());
+                ps.setString(4, dto.getPhone());
+                ps.setObject(5, dto.getExperienceYears());
+                ps.setString(6, dto.getJobRole());
+                ps.setString(7, dto.getRecruitmentStatus() != null ? dto.getRecruitmentStatus() : "APPLIED");
+                ps.setString(8, dto.getSummary());
+                ps.execute();
+            }
+            return null;
+        });
+
+        return toDTO(candidateRepository.findById(id).orElseThrow());
     }
 
-    @Transactional
-    public CandidateDTO updateCandidate(UUID id, CandidateDTO dto) {
-        Candidate candidate = candidateRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
+    public CandidateDTO updateCandidate(String id, CandidateDTO dto) {
+        Candidate c = candidateRepository.findById(id).orElseThrow();
+        
+        String sql = "UPDATE candidates SET name=?, email=?, phone=?, experience_years=?, job_role=?, recruitment_status=?, summary=?, status=? WHERE id=?";
+        jdbcTemplate.execute((java.sql.Connection conn) -> {
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, dto.getName() != null ? dto.getName() : c.getName());
+                ps.setString(2, dto.getEmail() != null ? dto.getEmail() : c.getEmail());
+                ps.setString(3, dto.getPhone() != null ? dto.getPhone() : c.getPhone());
+                ps.setObject(4, dto.getExperienceYears() != null ? dto.getExperienceYears() : c.getExperienceYears());
+                ps.setString(5, dto.getJobRole() != null ? dto.getJobRole() : c.getJobRole());
+                ps.setString(6, dto.getRecruitmentStatus() != null ? dto.getRecruitmentStatus() : c.getRecruitmentStatus());
+                ps.setString(7, dto.getSummary() != null ? dto.getSummary() : c.getSummary());
+                ps.setString(8, dto.getStatus() != null ? dto.getStatus() : c.getStatus());
+                ps.setString(9, id);
+                ps.execute();
+            }
+            return null;
+        });
 
-        if (dto.getName() != null) candidate.setName(dto.getName());
-        if (dto.getEmail() != null) candidate.setEmail(dto.getEmail());
-        if (dto.getPhone() != null) candidate.setPhone(dto.getPhone());
-        if (dto.getSkills() != null) candidate.setSkills(dto.getSkills());
-        if (dto.getExperienceYears() != null) candidate.setExperienceYears(dto.getExperienceYears());
-        if (dto.getJobRole() != null) candidate.setJobRole(dto.getJobRole());
-        if (dto.getRecruitmentStatus() != null) candidate.setRecruitmentStatus(dto.getRecruitmentStatus());
-        if (dto.getSummary() != null) candidate.setSummary(dto.getSummary());
-        if (dto.getStatus() != null) candidate.setStatus(dto.getStatus());
-
-        return toDTO(candidateRepository.save(candidate));
+        return toDTO(candidateRepository.findById(id).orElseThrow());
     }
 
-    @Transactional
-    public void deleteCandidate(UUID id) {
+    public void deleteCandidate(String id) {
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
         
-        // 1. Delete resume file from Cloudinary if it exists
         if (candidate.getResumeStoragePath() != null) {
             resumeService.deleteFromCloudinary(candidate.getResumeStoragePath());
         }
         
-        // 2. Perform hard delete
-        candidateRepository.delete(candidate);
+        jdbcTemplate.execute("DELETE FROM candidates WHERE id = '" + id + "'");
     }
 
-    @Transactional
-    public CandidateDTO updateRecruitmentStatus(UUID id, String recruitmentStatus) {
-        Candidate candidate = candidateRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
-        candidate.setRecruitmentStatus(recruitmentStatus);
-        return toDTO(candidateRepository.save(candidate));
+    public CandidateDTO updateRecruitmentStatus(String id, String recruitmentStatus) {
+        String sql = "UPDATE candidates SET recruitment_status = ? WHERE id = ?";
+        jdbcTemplate.execute((java.sql.Connection conn) -> {
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, recruitmentStatus);
+                ps.setString(2, id);
+                ps.execute();
+            }
+            return null;
+        });
+        return toDTO(candidateRepository.findById(id).orElseThrow());
     }
 
     public long countActive() {
-        return candidateRepository.findByStatus("ACTIVE", PageRequest.of(0, 1)).getTotalElements();
+        return candidateRepository.count();
     }
 
     private CandidateDTO toDTO(Candidate c) {
@@ -126,17 +146,5 @@ public class CandidateService {
         CandidateDTO dto = toDTO(c);
         dto.setResumes(resumeDto != null ? List.of(resumeDto) : List.of());
         return dto;
-    }
-
-    private Candidate fromDTO(CandidateDTO dto) {
-        return Candidate.builder()
-                .name(dto.getName())
-                .email(dto.getEmail())
-                .phone(dto.getPhone())
-                .skills(dto.getSkills() != null ? dto.getSkills() : List.of())
-                .experienceYears(dto.getExperienceYears())
-                .jobRole(dto.getJobRole())
-                .status("ACTIVE")
-                .build();
     }
 }
