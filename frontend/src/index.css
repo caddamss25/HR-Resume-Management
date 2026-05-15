@@ -381,3 +381,25 @@ h1, h2, h3, h4, h5, h6, .rms-logo {
 /* Dark Theme Hard Overrides (Prevent browser interference) */
 html { background-color: var(--rms-bg); }
 body { color-scheme: dark; }
+
+.rms-dropdown-item {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--rms-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: var(--rms-transition);
+}
+
+.rms-dropdown-item:hover {
+  background: var(--rms-surface-2);
+  color: #fff;
+}
+
+.rms-dropdown-item i {
+  color: var(--rms-primary);
+  font-size: 1.1rem;
+}
