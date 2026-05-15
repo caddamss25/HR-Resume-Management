@@ -8,13 +8,13 @@ import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 
 const RESUME_STATUSES = [
-  { value: 'APPLIED',             label: 'Applied',              color: '#4f8ef7' },
-  { value: 'UNDER_REVIEW',        label: 'Under Review',          color: '#f59e0b' },
-  { value: 'SHORTLISTED',         label: 'Shortlisted',           color: '#06d6a0' },
-  { value: 'INTERVIEW_SCHEDULED', label: 'Interview Scheduled',   color: '#7c3aed' },
-  { value: 'SELECTED',            label: 'Selected',              color: '#10b981' },
-  { value: 'REJECTED',            label: 'Rejected',              color: '#ef4444' },
-  { value: 'ON_HOLD',             label: 'On Hold',               color: '#6b7280' }
+  { value: 'APPLIED', label: 'Applied', color: '#4f8ef7' },
+  { value: 'UNDER_REVIEW', label: 'Under Review', color: '#f59e0b' },
+  { value: 'SHORTLISTED', label: 'Shortlisted', color: '#06d6a0' },
+  { value: 'INTERVIEW_SCHEDULED', label: 'Interview Scheduled', color: '#7c3aed' },
+  { value: 'SELECTED', label: 'Selected', color: '#10b981' },
+  { value: 'REJECTED', label: 'Rejected', color: '#ef4444' },
+  { value: 'ON_HOLD', label: 'On Hold', color: '#6b7280' }
 ]
 
 const STATUS_COLOR = Object.fromEntries(RESUME_STATUSES.map(s => [s.value, s.color]))
@@ -243,13 +243,13 @@ export default function BulkDelete() {
 
       {/* Action Bar */}
       {step !== STEPS.DONE && (
-        <div className="rms-card mb-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="rms-card mb-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', overflow: 'visible' }}>
           <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
-            <button className="btn-rms-outline" onClick={(e) => { e.stopPropagation(); setShowSelectDropdown(!showSelectDropdown) }} 
+            <button className="btn-rms-outline" onClick={(e) => { e.stopPropagation(); setShowSelectDropdown(!showSelectDropdown) }}
               style={{ padding: '8px 14px', fontSize: '0.82rem', borderColor: showSelectDropdown ? 'var(--rms-primary)' : '' }}>
               <i className="bi bi-check2-square" /> Selection Options <i className={`bi bi-chevron-${showSelectDropdown ? 'up' : 'down'} ms-1`} style={{ fontSize: '0.7rem' }} />
             </button>
-            
+
             {showSelectDropdown && (
               <div onClick={e => e.stopPropagation()} style={{
                 position: 'absolute', top: '110%', left: 0, zIndex: 1001,
