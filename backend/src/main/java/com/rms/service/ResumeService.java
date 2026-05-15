@@ -72,22 +72,11 @@ public class ResumeService {
             String recruitedFor,
             String candidateNotes) throws IOException {
 
-<<<<<<< HEAD
         final String finalId;
         if (candidateId != null && !candidateId.isBlank()) {
             finalId = candidateId;
         } else {
-            finalId = createCandidateFromFile(file, resumeStatus, recruitedFor, candidateNotes);
-=======
-        final Candidate candidate;
-        final UUID finalCandidateId;
-        if (candidateId != null) {
-            candidate = candidateRepository.findById(candidateId).orElse(null);
-            finalCandidateId = candidateId;
-        } else {
-            candidate = createCandidateFromFile(file, resumeStatus, recruitedFor, candidateNotes);
-            finalCandidateId = candidate.getId();
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
+            finalId = createCandidateFromFile(file, resumeStatus, recruitedFor, candidateNotes).getId();
         }
 
         User uploader = userRepository.findByEmail(uploaderEmail)
@@ -95,51 +84,28 @@ public class ResumeService {
 
         validateFile(file);
 
-<<<<<<< HEAD
         final String storagePath = buildStoragePath(finalId, file.getOriginalFilename());
         final String publicUrl = uploadToCloudinary(file, storagePath);
 
         // Update candidate using RAW JDBC
         String sql = "UPDATE candidates SET resume_url = ?, resume_file_name = ?, resume_storage_path = ?, recruitment_status = COALESCE(?, recruitment_status), job_role = COALESCE(?, job_role), summary = COALESCE(?, summary) WHERE id = ?";
-=======
-        final String storagePath = buildStoragePath(finalCandidateId, file.getOriginalFilename());
-        final String publicUrl = uploadToCloudinary(file, storagePath);
-        final String finalResumeStatus = resumeStatus != null ? resumeStatus : (candidate != null ? candidate.getRecruitmentStatus() : "APPLIED");
-        final String finalRecruitedFor = recruitedFor != null ? recruitedFor : (candidate != null ? candidate.getJobRole() : null);
-        final String finalNotes = candidateNotes != null ? candidateNotes : (candidate != null ? candidate.getSummary() : null);
-
-        // Update candidate with resume info using raw JDBC execute
-        String sql = "UPDATE candidates SET resume_url = ?, resume_file_name = ?, resume_storage_path = ?, recruitment_status = ?, job_role = ?, summary = ? WHERE id = ?";
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         jdbcTemplate.execute((java.sql.Connection conn) -> {
             try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, publicUrl);
                 ps.setString(2, file.getOriginalFilename());
                 ps.setString(3, storagePath);
-<<<<<<< HEAD
                 ps.setString(4, resumeStatus);
                 ps.setString(5, recruitedFor);
                 ps.setString(6, candidateNotes);
                 ps.setString(7, finalId);
-=======
-                ps.setString(4, finalResumeStatus);
-                ps.setString(5, finalRecruitedFor);
-                ps.setString(6, finalNotes);
-                ps.setString(7, finalCandidateId.toString());
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                 ps.execute();
             }
             return null;
         });
 
-<<<<<<< HEAD
         // FETCH FRESH DATA USING JPA
         Candidate updatedCandidate = candidateRepository.findById(finalId)
                 .orElseThrow(() -> new RuntimeException("Update failed to reflect in DB"));
-=======
-        // Refresh candidate from DB to return accurate response
-        Candidate updatedCandidate = candidateRepository.findById(finalCandidateId).orElse(candidate);
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         
         return toResponse(updatedCandidate, uploader);
     }
@@ -156,7 +122,6 @@ public class ResumeService {
         User uploader = userRepository.findByEmail(uploaderEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + uploaderEmail));
         
-<<<<<<< HEAD
         List<CompletableFuture<ProcessResult>> futures = new ArrayList<>();
         for (MultipartFile file : files) {
             futures.add(CompletableFuture.supplyAsync(() -> {
@@ -165,17 +130,6 @@ public class ResumeService {
                     return ProcessResult.ok(uploadResume(file, candidateId, uploaderEmail, resumeStatus, recruitedFor, candidateNotes));
                 } catch (Exception e) {
                     return ProcessResult.fail(file.getOriginalFilename() + ": " + e.getMessage());
-=======
-        Candidate sharedCandidate = (candidateId != null)
-                ? candidateRepository.findById(candidateId).orElse(null)
-                : null;
-
-        List<CompletableFuture<ProcessResult>> futures = new ArrayList<>();
-        for (MultipartFile file : files) {
-            futures.add(CompletableFuture.supplyAsync(() -> {
-                if (!activeJobs.containsKey(jobId)) {
-                    return ProcessResult.fail("UPLOAD_CANCELLED");
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                 }
             }, uploadExecutor));
         }
@@ -183,14 +137,7 @@ public class ResumeService {
         activeJobs.put(jobId, new ArrayList<>(futures));
 
         try {
-<<<<<<< HEAD
             List<ProcessResult> results = futures.stream().map(CompletableFuture::join).toList();
-=======
-            List<ProcessResult> results = futures.stream()
-                    .map(CompletableFuture::join)
-                    .toList();
-
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
             List<ResumeUploadResponse> uploaded = new ArrayList<>();
             List<String> errors = new ArrayList<>();
 
@@ -206,11 +153,7 @@ public class ResumeService {
                     .uploaded(uploaded)
                     .errors(errors)
                     .message("Bulk upload complete")
-<<<<<<< HEAD
                     .jobId(jobId)
-=======
-                    .jobId(jobId.toString())
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                     .build();
         } finally {
             activeJobs.remove(jobId);
@@ -220,12 +163,11 @@ public class ResumeService {
     public void cancelJob(String jobId) {
         List<CompletableFuture<?>> futures = activeJobs.remove(jobId);
         if (futures != null) {
-<<<<<<< HEAD
             for (CompletableFuture<?> f : futures) f.cancel(true);
         }
     }
 
-    private String createCandidateFromFile(MultipartFile file, String status, String role, String notes) {
+    private Candidate createCandidateFromFile(MultipartFile file, String status, String role, String notes) {
         final String id = UUID.randomUUID().toString();
         String originalName = file.getOriginalFilename();
         if (originalName != null && originalName.lastIndexOf('.') > 0) {
@@ -245,7 +187,7 @@ public class ResumeService {
             }
             return null;
         });
-        return id;
+        return candidateRepository.findById(id).orElseThrow();
     }
 
     public ResumeUploadResponse updateResumeStatus(String id, String resumeStatus, String recruitedFor) {
@@ -255,90 +197,6 @@ public class ResumeService {
                 ps.setString(1, resumeStatus);
                 ps.setString(2, recruitedFor);
                 ps.setString(3, id);
-=======
-            for (CompletableFuture<?> f : futures) {
-                f.cancel(true);
-            }
-        }
-    }
-
-    private ProcessResult processSingleFile(
-            MultipartFile file, Candidate sharedCandidate, User uploader,
-            String resumeStatus, String recruitedFor, String notes) {
-        
-        if (file.isEmpty()) return ProcessResult.fail("Skipped empty file: " + file.getOriginalFilename());
-
-        try {
-            validateFile(file);
-            final Candidate currentCandidate;
-            synchronized(this) {
-                currentCandidate = sharedCandidate != null ? sharedCandidate : createCandidateFromFile(file, resumeStatus, recruitedFor, notes);
-            }
-
-            final String storagePath = buildStoragePath(currentCandidate.getId(), file.getOriginalFilename());
-            final String publicUrl = uploadToCloudinary(file, storagePath);
-            final String finalStatus = resumeStatus != null ? resumeStatus : currentCandidate.getRecruitmentStatus();
-            final String finalRole = recruitedFor != null ? recruitedFor : currentCandidate.getJobRole();
-            final String finalId = currentCandidate.getId().toString();
-
-            String sql = "UPDATE candidates SET resume_url = ?, resume_file_name = ?, resume_storage_path = ?, recruitment_status = ?, job_role = ? WHERE id = ?";
-            jdbcTemplate.execute((java.sql.Connection conn) -> {
-                try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, publicUrl);
-                    ps.setString(2, file.getOriginalFilename());
-                    ps.setString(3, storagePath);
-                    ps.setString(4, finalStatus);
-                    ps.setString(5, finalRole);
-                    ps.setString(6, finalId);
-                    ps.execute();
-                }
-                return null;
-            });
-
-            Candidate updated = candidateRepository.findById(currentCandidate.getId()).orElse(currentCandidate);
-            return ProcessResult.ok(toResponse(updated, uploader));
-
-        } catch (Exception e) {
-            return ProcessResult.fail(file.getOriginalFilename() + ": " + e.getMessage());
-        }
-    }
-
-    private Candidate createCandidateFromFile(MultipartFile file, String status, String role, String notes) {
-        final String id = UUID.randomUUID().toString();
-        String name = file.getOriginalFilename();
-        if (name != null && name.lastIndexOf('.') > 0) name = name.substring(0, name.lastIndexOf('.'));
-        final String finalName = name;
-        
-        String sql = "INSERT INTO candidates (id, name, status, recruitment_status, summary, job_role, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))";
-        jdbcTemplate.execute((java.sql.Connection conn) -> {
-            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, id);
-                ps.setString(2, finalName);
-                ps.setString(3, "ACTIVE");
-                ps.setString(4, status != null ? status : "APPLIED");
-                ps.setString(5, notes);
-                ps.setString(6, role);
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
-                ps.execute();
-            }
-            return null;
-        });
-<<<<<<< HEAD
-        return toResponse(candidateRepository.findById(id).orElseThrow(), null);
-    }
-
-=======
-        return candidateRepository.findById(UUID.fromString(id)).orElseThrow();
-    }
-
-    public ResumeUploadResponse updateResumeStatus(UUID id, String resumeStatus, String recruitedFor) {
-        final String finalId = id.toString();
-        String sql = "UPDATE candidates SET recruitment_status = COALESCE(?, recruitment_status), job_role = COALESCE(?, job_role) WHERE id = ?";
-        jdbcTemplate.execute((java.sql.Connection conn) -> {
-            try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, resumeStatus);
-                ps.setString(2, recruitedFor);
-                ps.setString(3, finalId);
                 ps.execute();
             }
             return null;
@@ -346,32 +204,18 @@ public class ResumeService {
         return toResponse(candidateRepository.findById(id).orElseThrow(), null);
     }
 
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
     public List<ResumeUploadResponse> getAllResumes() {
         return candidateRepository.findAll().stream()
                 .filter(c -> c.getResumeUrl() != null)
                 .map(c -> toResponse(c, null)).toList();
     }
 
-<<<<<<< HEAD
     public ResumeUploadResponse getResumeById(String id) {
         return toResponse(candidateRepository.findById(id).orElseThrow(), null);
     }
 
     public String getPublicDownloadUrl(String id) {
         return candidateRepository.findById(id).orElseThrow().getResumeUrl();
-=======
-    public ResumeUploadResponse getResumeById(UUID id) {
-        Candidate candidate = candidateRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
-        return toResponse(candidate, null);
-    }
-
-    public String getPublicDownloadUrl(UUID id) {
-        Candidate candidate = candidateRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
-        return candidate.getResumeUrl();
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
     }
 
     public List<ResumeUploadResponse> getRecentResumes(int count) {
@@ -397,7 +241,6 @@ public class ResumeService {
         return getAllResumes();
     }
 
-<<<<<<< HEAD
     public void deleteResume(String id, String adminPassword, String requestUserEmail) {
         User requestUser = userRepository.findByEmail(requestUserEmail).orElseThrow();
         if (!passwordEncoder.matches(adminPassword, requestUser.getPassword())) throw new SecurityException("Incorrect password");
@@ -411,24 +254,6 @@ public class ResumeService {
         if (!passwordEncoder.matches(adminPassword, requestUser.getPassword())) throw new SecurityException("Incorrect password");
         int deleted = 0;
         for (String id : candidateIds) {
-=======
-    public void deleteResume(UUID id, String adminPassword, String requestUserEmail) {
-        User requestUser = userRepository.findByEmail(requestUserEmail).orElseThrow();
-        if (!passwordEncoder.matches(adminPassword, requestUser.getPassword())) throw new SecurityException("Incorrect password");
-        
-        Candidate candidate = candidateRepository.findById(id).orElseThrow();
-        if (candidate.getResumeStoragePath() != null) deleteFromCloudinary(candidate.getResumeStoragePath());
-        
-        jdbcTemplate.execute("DELETE FROM candidates WHERE id = '" + id + "'");
-    }
-
-    public Map<String, Object> bulkDelete(List<UUID> candidateIds, String adminPassword, String requestUserEmail) {
-        User requestUser = userRepository.findByEmail(requestUserEmail).orElseThrow();
-        if (!passwordEncoder.matches(adminPassword, requestUser.getPassword())) throw new SecurityException("Incorrect password");
-
-        int deleted = 0;
-        for (UUID id : candidateIds) {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
             try {
                 Candidate c = candidateRepository.findById(id).orElse(null);
                 if (c != null) {
@@ -442,17 +267,10 @@ public class ResumeService {
     }
 
     public Map<String, Object> purgeOrphanedRecords(String adminPassword, String requestUserEmail) {
-<<<<<<< HEAD
         return Map.of("message", "Purge not implemented in JDBC mode");
     }
 
     private String buildStoragePath(String pathId, String originalFilename) {
-=======
-        return Map.of("message", "Purge not implemented in JDBC mode yet");
-    }
-
-    private String buildStoragePath(UUID pathId, String originalFilename) {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         String timestamp = String.valueOf(Instant.now().toEpochMilli());
         String safeFileName = (originalFilename != null ? originalFilename : "file").replaceAll("[^a-zA-Z0-9._-]", "_");
         return pathId + "/" + timestamp + "_" + safeFileName;

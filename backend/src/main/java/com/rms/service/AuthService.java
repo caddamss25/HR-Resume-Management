@@ -16,10 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-<<<<<<< HEAD
-=======
 import java.time.LocalDateTime;
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
 import java.util.UUID;
 
 @Service
@@ -53,13 +50,7 @@ public class AuthService {
         final String name = request.getName();
         final String email = request.getEmail();
         final String password = passwordEncoder.encode(request.getPassword());
-<<<<<<< HEAD
-        final String role = (request.getRole() != null && !request.getRole().isBlank()) 
-                           ? request.getRole() : "HR_RECRUITER";
-
-        try {
-            String sql = "INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
-=======
+        
         // Default role is HR_RECRUITER if not specified
         final String role = (request.getRole() != null && !request.getRole().isBlank()) 
                            ? request.getRole() : "HR_RECRUITER";
@@ -68,7 +59,6 @@ public class AuthService {
 
         try {
             String sql = "INSERT INTO users (id, name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)";
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
             jdbcTemplate.execute((java.sql.Connection conn) -> {
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, id);
@@ -76,32 +66,19 @@ public class AuthService {
                     ps.setString(3, email);
                     ps.setString(4, password);
                     ps.setString(5, role);
-<<<<<<< HEAD
-=======
                     ps.setObject(6, LocalDateTime.now().toString()); // Use ISO string for SQLite
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                     ps.execute();
                 }
                 return null;
             });
-<<<<<<< HEAD
             logger.info("[AUTH] User inserted successfully: {}", email);
         } catch (Exception e) {
             logger.error("[AUTH] FATAL ERROR during registration for {}: {}", email, e.getMessage());
-            throw new RuntimeException("Database error: " + e.getMessage());
+            throw new RuntimeException("Database error during registration: " + e.getMessage());
         }
 
         User saved = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found after save"));
-=======
-        } catch (Exception e) {
-            logger.error("Failed to insert user into DB: {}", e.getMessage());
-            throw new RuntimeException("Database error during registration: " + e.getMessage());
-        }
-
-        User saved = userRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> new RuntimeException("User was not saved correctly"));
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(saved.getEmail());
         String token = jwtUtil.generateToken(userDetails, saved.getRole());
@@ -147,13 +124,8 @@ public class AuthService {
 
         final String encodedPassword = passwordEncoder.encode(newPassword);
         final String finalEmail = email;
-<<<<<<< HEAD
-        jdbcTemplate.execute((java.sql.Connection conn) -> {
-            String sql = "UPDATE users SET password = ? WHERE email = ?";
-=======
         String sql = "UPDATE users SET password = ? WHERE email = ?";
         jdbcTemplate.execute((java.sql.Connection conn) -> {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
             try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, encodedPassword);
                 ps.setString(2, finalEmail);
@@ -170,16 +142,10 @@ public class AuthService {
                 .toList();
     }
 
-<<<<<<< HEAD
     public void deleteUser(String id) {
-        jdbcTemplate.execute("DELETE FROM users WHERE id = '" + id + "'");
-=======
-    public void deleteUser(java.util.UUID id) {
         if (!userRepository.existsById(id)) {
             throw new java.util.NoSuchElementException("User not found with id: " + id);
         }
-        final String finalId = id.toString();
-        jdbcTemplate.execute("DELETE FROM users WHERE id = '" + finalId + "'");
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
+        jdbcTemplate.execute("DELETE FROM users WHERE id = '" + id + "'");
     }
 }

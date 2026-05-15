@@ -8,15 +8,6 @@ import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 
 const RESUME_STATUSES = [
-<<<<<<< HEAD
-  { value: 'APPLIED', label: 'Applied', color: '#4f8ef7' },
-  { value: 'UNDER_REVIEW', label: 'Under Review', color: '#f59e0b' },
-  { value: 'SHORTLISTED', label: 'Shortlisted', color: '#06d6a0' },
-  { value: 'INTERVIEW_SCHEDULED', label: 'Interview Scheduled', color: '#7c3aed' },
-  { value: 'SELECTED', label: 'Selected', color: '#10b981' },
-  { value: 'REJECTED', label: 'Rejected', color: '#ef4444' },
-  { value: 'ON_HOLD', label: 'On Hold', color: '#6b7280' }
-=======
   { value: 'APPLIED',             label: 'Applied',              color: '#4f8ef7' },
   { value: 'UNDER_REVIEW',        label: 'Under Review',          color: '#f59e0b' },
   { value: 'SHORTLISTED',         label: 'Shortlisted',           color: '#06d6a0' },
@@ -24,7 +15,6 @@ const RESUME_STATUSES = [
   { value: 'SELECTED',            label: 'Selected',              color: '#10b981' },
   { value: 'REJECTED',            label: 'Rejected',              color: '#ef4444' },
   { value: 'ON_HOLD',             label: 'On Hold',               color: '#6b7280' }
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
 ]
 
 const STATUS_COLOR = Object.fromEntries(RESUME_STATUSES.map(s => [s.value, s.color]))

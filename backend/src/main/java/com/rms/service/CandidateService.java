@@ -33,26 +33,16 @@ public class CandidateService {
                 .map(this::toDTO);
     }
 
-<<<<<<< HEAD
     public CandidateDTO getCandidateById(String id) {
-=======
-    public CandidateDTO getCandidateById(UUID id) {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
         return toDTOWithResumes(candidate);
     }
 
     public CandidateDTO createCandidate(CandidateDTO dto) {
-<<<<<<< HEAD
         final String id = UUID.randomUUID().toString();
         
         String sql = "INSERT INTO candidates (id, name, email, phone, experience_years, job_role, status, recruitment_status, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, datetime('now'))";
-=======
-        String id = UUID.randomUUID().toString();
-        
-        String sql = "INSERT INTO candidates (id, name, email, phone, experience_years, job_role, status, recruitment_status, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))";
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         jdbcTemplate.execute((java.sql.Connection conn) -> {
             try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, id);
@@ -61,30 +51,17 @@ public class CandidateService {
                 ps.setString(4, dto.getPhone());
                 ps.setObject(5, dto.getExperienceYears());
                 ps.setString(6, dto.getJobRole());
-<<<<<<< HEAD
                 ps.setString(7, dto.getRecruitmentStatus() != null ? dto.getRecruitmentStatus() : "APPLIED");
                 ps.setString(8, dto.getSummary());
-=======
-                ps.setString(7, "ACTIVE");
-                ps.setString(8, dto.getRecruitmentStatus() != null ? dto.getRecruitmentStatus() : "APPLIED");
-                ps.setString(9, dto.getSummary());
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                 ps.execute();
             }
             return null;
         });
 
-<<<<<<< HEAD
         return toDTO(candidateRepository.findById(id).orElseThrow());
     }
 
     public CandidateDTO updateCandidate(String id, CandidateDTO dto) {
-=======
-        return toDTO(candidateRepository.findById(UUID.fromString(id)).orElseThrow());
-    }
-
-    public CandidateDTO updateCandidate(UUID id, CandidateDTO dto) {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         Candidate c = candidateRepository.findById(id).orElseThrow();
         
         String sql = "UPDATE candidates SET name=?, email=?, phone=?, experience_years=?, job_role=?, recruitment_status=?, summary=?, status=? WHERE id=?";
@@ -98,11 +75,7 @@ public class CandidateService {
                 ps.setString(6, dto.getRecruitmentStatus() != null ? dto.getRecruitmentStatus() : c.getRecruitmentStatus());
                 ps.setString(7, dto.getSummary() != null ? dto.getSummary() : c.getSummary());
                 ps.setString(8, dto.getStatus() != null ? dto.getStatus() : c.getStatus());
-<<<<<<< HEAD
                 ps.setString(9, id);
-=======
-                ps.setString(9, id.toString());
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                 ps.execute();
             }
             return null;
@@ -111,11 +84,7 @@ public class CandidateService {
         return toDTO(candidateRepository.findById(id).orElseThrow());
     }
 
-<<<<<<< HEAD
     public void deleteCandidate(String id) {
-=======
-    public void deleteCandidate(UUID id) {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Candidate not found: " + id));
         
@@ -126,20 +95,12 @@ public class CandidateService {
         jdbcTemplate.execute("DELETE FROM candidates WHERE id = '" + id + "'");
     }
 
-<<<<<<< HEAD
     public CandidateDTO updateRecruitmentStatus(String id, String recruitmentStatus) {
-=======
-    public CandidateDTO updateRecruitmentStatus(UUID id, String recruitmentStatus) {
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
         String sql = "UPDATE candidates SET recruitment_status = ? WHERE id = ?";
         jdbcTemplate.execute((java.sql.Connection conn) -> {
             try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, recruitmentStatus);
-<<<<<<< HEAD
                 ps.setString(2, id);
-=======
-                ps.setString(2, id.toString());
->>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
                 ps.execute();
             }
             return null;
