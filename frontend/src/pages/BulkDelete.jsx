@@ -64,8 +64,14 @@ export default function BulkDelete() {
     })
   }
 
-  const selectAll = () => setSelected(new Set(resumes.map(r => r.id)))
-  const selectNone = () => setSelected(new Set())
+  const selectAll = () => {
+    setSelected(new Set(resumes.map(r => r.id)))
+    setShowSelectDropdown(false)
+  }
+  const selectNone = () => {
+    setSelected(new Set())
+    setShowSelectDropdown(false)
+  }
   const selectByStatus = (status) => {
     const ids = resumes.filter(r => r.resumeStatus === status).map(r => r.id)
     setSelected(new Set(ids))
@@ -252,25 +258,26 @@ export default function BulkDelete() {
 
             {showSelectDropdown && (
               <div onClick={e => e.stopPropagation()} style={{
-                position: 'absolute', top: '110%', left: 0, zIndex: 1001,
+                position: 'relative', top: '100%', left: 0, zIndex: 10000,
                 background: 'var(--rms-surface)', border: '1px solid var(--rms-border)',
-                borderRadius: 12, minWidth: 200, boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
-                overflow: 'hidden', animation: 'fadeIn 0.2s ease-out'
+                borderRadius: 12, minWidth: 220, boxShadow: '0 15px 45px rgba(0,0,0,0.5)',
+                marginTop: 8, overflow: 'visible'
               }}>
-                <div onClick={selectAll} className="rms-dropdown-item">
+                <div onClick={(e) => { e.stopPropagation(); selectAll(); }} className="rms-dropdown-item">
                   <i className="bi bi-check-all" /> Select All ({resumes.length})
                 </div>
-                <div onClick={selectNone} className="rms-dropdown-item">
+                <div onClick={(e) => { e.stopPropagation(); selectNone(); }} className="rms-dropdown-item">
                   <i className="bi bi-x-circle" /> Select None
                 </div>
                 <div style={{ height: 1, background: 'var(--rms-border)', margin: '4px 0' }} />
-                <div style={{ padding: '8px 14px', fontSize: '0.65rem', fontWeight: 800, color: 'var(--rms-text-dim)', textTransform: 'uppercase' }}>By Status</div>
+                <div style={{ padding: '10px 16px', fontSize: '0.65rem', fontWeight: 800, color: 'var(--rms-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>By Status</div>
                 {RESUME_STATUSES.map(s => {
                   const count = resumes.filter(r => r.resumeStatus === s.value).length
                   return (
-                    <div key={s.value} onClick={() => selectByStatus(s.value)} className="rms-dropdown-item">
+                    <div key={s.value} onClick={(e) => { e.stopPropagation(); selectByStatus(s.value); }} className="rms-dropdown-item">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
-                      {s.label} ({count})
+                      <span style={{ flex: 1 }}>{s.label}</span>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>{count}</span>
                     </div>
                   )
                 })}
@@ -372,7 +379,7 @@ export default function BulkDelete() {
                             }}>
 
                               {RESUME_STATUSES.map(s => (
-                                <div key={s.value} onClick={() => handleStatusChange(r.id, s.value)}
+                                <div key={s.value} onClick={(e) => { e.stopPropagation(); handleStatusChange(r.id, s.value); }}
                                   style={{
                                     padding: '8px 14px', fontSize: '0.82rem', fontWeight: 600,
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
