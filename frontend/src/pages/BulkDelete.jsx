@@ -37,6 +37,8 @@ export default function BulkDelete() {
   const [showPurgeBox, setShowPurgeBox] = useState(false)
   const [editingStatusId, setEditingStatusId] = useState(null)
   const [updatingId, setUpdatingId] = useState(null)
+  const [showSelectDropdown, setShowSelectDropdown] = useState(false)
+
 
   const [pwdModalConfig, setPwdModalConfig] = useState({ isOpen: false, action: null })
 
@@ -64,6 +66,11 @@ export default function BulkDelete() {
 
   const selectAll = () => setSelected(new Set(resumes.map(r => r.id)))
   const selectNone = () => setSelected(new Set())
+  const selectByStatus = (status) => {
+    const ids = resumes.filter(r => r.resumeStatus === status).map(r => r.id)
+    setSelected(new Set(ids))
+    setShowSelectDropdown(false)
+  }
 
   // ── Inline status update ──────────────────────────────────────────
   const handleStatusChange = async (resumeId, newStatus) => {
@@ -171,7 +178,8 @@ export default function BulkDelete() {
   const orphanedCount = resumes.filter(r => !r.signedUrl).length
 
   return (
-    <div className="fade-in" onClick={() => setEditingStatusId(null)}>
+    <div className="fade-in" onClick={() => { setEditingStatusId(null); setShowSelectDropdown(false); }}>
+
 
       <PasswordModal
         isOpen={pwdModalConfig.isOpen}
@@ -236,10 +244,40 @@ export default function BulkDelete() {
       {/* Action Bar */}
       {step !== STEPS.DONE && (
         <div className="rms-card mb-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn-rms-outline" onClick={selectAll} style={{ padding: '8px 14px', fontSize: '0.82rem' }}><i className="bi bi-check-all" /> Select All</button>
-            <button className="btn-rms-outline" onClick={selectNone} style={{ padding: '8px 14px', fontSize: '0.82rem' }}><i className="bi bi-x-square" /> None</button>
+          <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
+            <button className="btn-rms-outline" onClick={(e) => { e.stopPropagation(); setShowSelectDropdown(!showSelectDropdown) }} 
+              style={{ padding: '8px 14px', fontSize: '0.82rem', borderColor: showSelectDropdown ? 'var(--rms-primary)' : '' }}>
+              <i className="bi bi-check2-square" /> Selection Options <i className={`bi bi-chevron-${showSelectDropdown ? 'up' : 'down'} ms-1`} style={{ fontSize: '0.7rem' }} />
+            </button>
+            
+            {showSelectDropdown && (
+              <div onClick={e => e.stopPropagation()} style={{
+                position: 'absolute', top: '110%', left: 0, zIndex: 1001,
+                background: 'var(--rms-surface)', border: '1px solid var(--rms-border)',
+                borderRadius: 12, minWidth: 200, boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+                overflow: 'hidden', animation: 'fadeIn 0.2s ease-out'
+              }}>
+                <div onClick={selectAll} className="rms-dropdown-item">
+                  <i className="bi bi-check-all" /> Select All ({resumes.length})
+                </div>
+                <div onClick={selectNone} className="rms-dropdown-item">
+                  <i className="bi bi-x-circle" /> Select None
+                </div>
+                <div style={{ height: 1, background: 'var(--rms-border)', margin: '4px 0' }} />
+                <div style={{ padding: '8px 14px', fontSize: '0.65rem', fontWeight: 800, color: 'var(--rms-text-dim)', textTransform: 'uppercase' }}>By Status</div>
+                {RESUME_STATUSES.map(s => {
+                  const count = resumes.filter(r => r.resumeStatus === s.value).length
+                  return (
+                    <div key={s.value} onClick={() => selectByStatus(s.value)} className="rms-dropdown-item">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
+                      {s.label} ({count})
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
+
           <span style={{ color: 'var(--rms-text-muted)', fontSize: '0.85rem' }}>{selected.size} of {resumes.length} selected</span>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
             {step === STEPS.LOAD && (
@@ -328,10 +366,11 @@ export default function BulkDelete() {
                           {editingStatusId === r.id && (
                             <div onClick={e => e.stopPropagation()} style={{
                               position: 'absolute', top: '110%', left: 0, zIndex: 999,
-                              background: 'var(--rms-card-bg)', border: '1px solid var(--rms-border)',
+                              background: 'var(--rms-surface)', border: '1px solid var(--rms-border)',
                               borderRadius: 8, minWidth: 195, boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
                               overflow: 'hidden'
                             }}>
+
                               {RESUME_STATUSES.map(s => (
                                 <div key={s.value} onClick={() => handleStatusChange(r.id, s.value)}
                                   style={{
