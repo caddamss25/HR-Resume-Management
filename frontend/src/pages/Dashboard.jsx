@@ -236,7 +236,11 @@ export default function Dashboard() {
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rms-accent)', boxShadow: '0 0 10px var(--rms-accent)' }} />
                 <div style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid var(--rms-accent)', animation: 'ping 1.5s infinite' }} />
               </div>
+<<<<<<< HEAD
               <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Turso DB Production Active</span>
+=======
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Supabase DB Production Active</span>
+>>>>>>> fe0bfdb83fba51afad75c13a67981f2abe261f05
             </div>
           </div>
         </div>

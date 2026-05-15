@@ -38,7 +38,7 @@ export default function Login() {
             }}>
               <i className="bi bi-shield-lock-fill" style={{ color: '#fff', fontSize: '1.5rem' }} />
             </div>
-            <span style={{ letterSpacing: '0.05em', fontWeight: 900 }}>CADDAM <span style={{ color: 'var(--rms-primary)' }}>RMS</span></span>
+            <span style={{ letterSpacing: '0.05em', fontWeight: 900 }}>CADDAM <span style={{ color: 'var(--rms-primary)' }}>HR</span></span>
           </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginBottom: 8, fontFamily: 'Outfit, sans-serif' }}>
             Enterprise Access
@@ -66,7 +66,7 @@ export default function Login() {
           <div className="rms-form-group" style={{ marginBottom: 32 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <label className="rms-label" htmlFor="login-password" style={{ marginBottom: 0 }}>Password</label>
-              <a href="#" style={{ fontSize: '0.75rem', color: 'var(--rms-primary)', textDecoration: 'none', fontWeight: 700 }}>Recovery?</a>
+              {/* <a href="#" style={{ fontSize: '0.75rem', color: 'var(--rms-primary)', textDecoration: 'none', fontWeight: 700 }}>Recovery?</a> */}
             </div>
             <input
               id="login-password"
