@@ -119,22 +119,31 @@ public class ResumeService {
             String candidateNotes) {
         
         String jobId = UUID.randomUUID().toString();
+        logger.info("Starting bulk upload job {} with {} files", jobId, files.length);
         User uploader = userRepository.findByEmail(uploaderEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + uploaderEmail));
         
         List<CompletableFuture<ProcessResult>> futures = new ArrayList<>();
+        activeJobs.put(jobId, (List<CompletableFuture<?>>) (List<?>) futures);
         for (MultipartFile file : files) {
             futures.add(CompletableFuture.supplyAsync(() -> {
-                if (!activeJobs.containsKey(jobId)) return ProcessResult.fail("UPLOAD_CANCELLED");
+                if (!activeJobs.containsKey(jobId)) {
+                    logger.warn("Job {} was cancelled or not found, skipping file {}", jobId, file.getOriginalFilename());
+                    return ProcessResult.fail("UPLOAD_CANCELLED");
+                }
                 try {
-                    return ProcessResult.ok(uploadResume(file, candidateId, uploaderEmail, resumeStatus, recruitedFor, candidateNotes));
+                    logger.info("Job {}: Processing file {}", jobId, file.getOriginalFilename());
+                    ResumeUploadResponse res = uploadResume(file, candidateId, uploaderEmail, resumeStatus, recruitedFor, candidateNotes);
+                    logger.info("Job {}: Successfully uploaded {}", jobId, file.getOriginalFilename());
+                    return ProcessResult.ok(res);
                 } catch (Exception e) {
+                    logger.error("Job {}: Failed to upload {}: {}", jobId, file.getOriginalFilename(), e.getMessage());
                     return ProcessResult.fail(file.getOriginalFilename() + ": " + e.getMessage());
                 }
             }, uploadExecutor));
         }
 
-        activeJobs.put(jobId, new ArrayList<>(futures));
+
 
         try {
             List<ProcessResult> results = futures.stream().map(CompletableFuture::join).toList();
@@ -145,6 +154,8 @@ public class ResumeService {
                 if (res.success) uploaded.add(res.response);
                 else if (!"UPLOAD_CANCELLED".equals(res.error)) errors.add(res.error);
             }
+
+            logger.info("Job {} complete. Success: {}, Failure: {}", jobId, uploaded.size(), errors.size());
 
             return BulkUploadResponse.builder()
                     .totalFiles(files.length)
