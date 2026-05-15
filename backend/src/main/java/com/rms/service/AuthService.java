@@ -58,7 +58,7 @@ public class AuthService {
         logger.info("Registering new user: {} with role: {}", email, role);
 
         try {
-            String sql = "INSERT INTO users (id, name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO users (id, name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))";
             jdbcTemplate.execute((java.sql.Connection conn) -> {
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, id);
@@ -66,7 +66,6 @@ public class AuthService {
                     ps.setString(3, email);
                     ps.setString(4, password);
                     ps.setString(5, role);
-                    ps.setObject(6, LocalDateTime.now().toString()); // Use ISO string for SQLite
                     ps.execute();
                 }
                 return null;
