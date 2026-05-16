@@ -1,18 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { timeAgo } from '../utils/formatDate'
 
 export default function Navbar({ onMenuClick }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [loadingNotifs, setLoadingNotifs] = useState(false)
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && search.trim()) {
       navigate(`/search?keyword=${encodeURIComponent(search.trim())}`)
     }
   }
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      setLoadingNotifs(true)
+      try {
+        const res = await api.get('/api/resumes/recent?count=5')
+        setNotifications(res.data)
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err)
+      } finally {
+        setLoadingNotifs(false)
+      }
+    }
+    fetchNotifications()
+  }, [])
 
   return (
     <div className="rms-topbar">
@@ -75,21 +94,23 @@ export default function Navbar({ onMenuClick }) {
             }}
           >
             <i className="bi bi-bell-fill" style={{ fontSize: '0.95rem' }} />
-            {/* Badge */}
-            <span style={{
-              position: 'absolute', top: 7, right: 7,
-              width: 8, height: 8, borderRadius: '50%',
-              background: 'var(--rms-accent)',
-              border: '2px solid var(--rms-bg)',
-              animation: 'pulse 2s infinite'
-            }} />
+            {/* Badge - Show only if we have notifications */}
+            {notifications.length > 0 && (
+              <span style={{
+                position: 'absolute', top: 7, right: 7,
+                width: 8, height: 8, borderRadius: '50%',
+                background: 'var(--rms-accent)',
+                border: '2px solid var(--rms-bg)',
+                animation: 'pulse 2s infinite'
+              }} />
+            )}
           </button>
 
           {/* Notification Dropdown */}
           {notifOpen && (
             <div style={{
               position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-              width: 300, background: 'var(--rms-surface)',
+              width: 320, background: 'var(--rms-surface)',
               border: '1px solid var(--rms-border)', borderRadius: 14,
               boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
               zIndex: 200, overflow: 'hidden'
@@ -99,42 +120,65 @@ export default function Navbar({ onMenuClick }) {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center'
               }}>
                 <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Notifications</span>
-                <span style={{
-                  fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6,
-                  background: 'rgba(6,214,160,0.12)', color: 'var(--rms-accent)',
-                  border: '1px solid rgba(6,214,160,0.2)'
-                }}>3 NEW</span>
+                {notifications.length > 0 && (
+                  <span style={{
+                    fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                    background: 'rgba(6,214,160,0.12)', color: 'var(--rms-accent)',
+                    border: '1px solid rgba(6,214,160,0.2)'
+                  }}>{notifications.length} NEW</span>
+                )}
               </div>
-              {[
-                { icon: 'bi-person-plus-fill', color: '#6366f1', msg: 'New candidate applied for React Dev', time: '2m ago' },
-                { icon: 'bi-file-earmark-pdf-fill', color: '#a855f7', msg: 'Resume processed successfully', time: '15m ago' },
-                { icon: 'bi-check2-circle', color: '#10b981', msg: 'Candidate shortlisted by HR team', time: '1h ago' },
-              ].map((n, i) => (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 12,
-                  padding: '12px 18px',
-                  borderBottom: i < 2 ? '1px solid var(--rms-border)' : 'none',
-                  cursor: 'pointer', transition: 'background 0.15s'
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--rms-surface-2)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+
+              <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                {loadingNotifs ? (
+                  <div style={{ padding: 20, textAlign: 'center' }}>
+                    <div className="spinner-border spinner-border-sm text-primary" role="status" />
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div style={{ padding: 30, textAlign: 'center', color: 'var(--rms-text-dim)', fontSize: '0.85rem' }}>
+                    <i className="bi bi-bell-slash d-block mb-2" style={{ fontSize: '1.5rem', opacity: 0.3 }} />
+                    No new notifications
+                  </div>
+                ) : (
+                  notifications.map((n, i) => (
+                    <div key={n.id} style={{
+                      display: 'flex', alignItems: 'flex-start', gap: 12,
+                      padding: '12px 18px',
+                      borderBottom: i < notifications.length - 1 ? '1px solid var(--rms-border)' : 'none',
+                      cursor: 'pointer', transition: 'background 0.15s'
+                    }}
+                      onClick={() => {
+                        navigate('/dashboard') // Or to specific candidate
+                        setNotifOpen(false)
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--rms-surface-2)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                        background: n.resumeStatus === 'SELECTED' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)', 
+                        color: n.resumeStatus === 'SELECTED' ? '#10b981' : 'var(--rms-primary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem'
+                      }}>
+                        <i className={`bi ${n.resumeStatus === 'SELECTED' ? 'bi-award-fill' : 'bi-file-earmark-person-fill'}`} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--rms-text)', lineHeight: 1.4 }}>
+                          <strong>{n.candidateName || n.fileName?.split('.')[0]}</strong> has been updated to <strong>{n.resumeStatus?.replace(/_/g, ' ')}</strong>
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--rms-text-dim)', marginTop: 2 }}>{timeAgo(n.uploadedAt)}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div style={{ padding: '10px 18px', textAlign: 'center', borderTop: '1px solid var(--rms-border)' }}>
+                <span 
+                  onClick={() => { navigate('/candidates'); setNotifOpen(false); }}
+                  style={{ fontSize: '0.78rem', color: 'var(--rms-primary)', fontWeight: 600, cursor: 'pointer' }}
                 >
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                    background: `${n.color}18`, color: n.color,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem'
-                  }}>
-                    <i className={`bi ${n.icon}`} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--rms-text)', lineHeight: 1.4 }}>{n.msg}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--rms-text-dim)', marginTop: 2 }}>{n.time}</div>
-                  </div>
-                </div>
-              ))}
-              <div style={{ padding: '10px 18px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--rms-primary)', fontWeight: 600, cursor: 'pointer' }}>
-                  View all notifications
+                  View all candidates
                 </span>
               </div>
             </div>
