@@ -18,6 +18,7 @@ import Settings from './pages/Settings'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import Sidebar from './components/Sidebar'
+import Navbar from './components/Navbar'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -46,19 +47,9 @@ function App() {
       )}
       <div className={isAuthenticated ? 'rms-content' : ''}>
         {isAuthenticated && (
-          <div className="rms-mobile-only" style={{ marginBottom: 16 }}>
-            <button
-              onClick={toggleSidebar}
-              style={{
-                background: 'var(--rms-surface)', border: '1px solid var(--rms-border)',
-                color: 'var(--rms-text)', padding: '8px 12px', borderRadius: 8,
-                display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem'
-              }}
-            >
-              <i className="bi bi-list" style={{ fontSize: '1.2rem' }} /> Menu
-            </button>
-          </div>
+          <Navbar onMenuClick={toggleSidebar} />
         )}
+        <div className={isAuthenticated ? 'rms-page-body' : ''}>
         <Routes>
           {/* Public */}
           <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" replace />} />
@@ -80,6 +71,7 @@ function App() {
           <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </div>
       </div>
     </>
   )
