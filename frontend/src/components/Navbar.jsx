@@ -63,17 +63,6 @@ export default function Navbar({ onMenuClick }) {
             onFocus={e => e.currentTarget.style.borderColor = 'var(--rms-primary)'}
             onBlur={e => e.currentTarget.style.borderColor = 'var(--rms-border)'}
           />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              style={{
-                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', color: 'var(--rms-text-dim)', cursor: 'pointer', padding: 2
-              }}
-            >
-              <i className="bi bi-x" style={{ fontSize: '1rem' }} />
-            </button>
-          )}
         </div>
       </div>
 
