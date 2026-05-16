@@ -30,8 +30,8 @@ export default function Login() {
       <div className="rms-auth-card fade-in">
         <div className="text-center mb-5">
           <div className="rms-auth-logo">
-            <div style={{ 
-              width: 48, height: 48, borderRadius: 14, 
+            <div style={{
+              width: 48, height: 48, borderRadius: 14,
               background: 'linear-gradient(135deg, var(--rms-primary), var(--rms-secondary))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)'
@@ -99,6 +99,45 @@ export default function Login() {
             <i className="bi bi-incognito me-2" /> Secure Infrastructure
           </p>
         </div>
+      </div>
+      {/* Developer Credit — bottom right */}
+      <div style={{
+        position: 'fixed',
+        bottom: 24,
+        right: 28,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '8px 14px',
+        background: 'rgba(21, 25, 33, 0.75)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(99, 102, 241, 0.2)',
+        borderRadius: 10,
+        zIndex: 50,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+      }}>
+        <i className="bi bi-code-slash" style={{
+          fontSize: '0.85rem',
+          color: 'var(--rms-primary)',
+        }} />
+        <span style={{
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          color: 'var(--rms-text-dim)',
+          letterSpacing: '0.03em',
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          Developed by{' '}
+          <span style={{
+            background: 'linear-gradient(90deg, var(--rms-primary), var(--rms-secondary))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 800,
+            letterSpacing: '0.01em',
+          }}>
+            VIKRAM R
+          </span>
+        </span>
       </div>
     </div>
   )
