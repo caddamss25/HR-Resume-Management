@@ -613,3 +613,21 @@ body {
   color: var(--rms-primary);
   font-size: 1.1rem;
 }
+
+/* Notifications Cleanup Styles */
+.rms-notif-item .rms-notif-remove {
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.rms-notif-item:hover .rms-notif-remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rms-notif-remove:hover {
+  background: var(--rms-primary) !important;
+  color: #fff !important;
+  border-color: var(--rms-primary) !important;
+}
