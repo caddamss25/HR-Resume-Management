@@ -68,7 +68,7 @@ export default function Dashboard() {
       color: '#6366f1',
       grad: 'linear-gradient(135deg,#6366f1,#818cf8)',
       icon: 'bi-people-fill',
-      trend: '+12%',
+
       sub: 'total in system'
     },
     {
@@ -77,7 +77,7 @@ export default function Dashboard() {
       color: '#a855f7',
       grad: 'linear-gradient(135deg,#a855f7,#c084fc)',
       icon: 'bi-file-earmark-pdf-fill',
-      trend: '+8%',
+
       sub: 'uploaded'
     },
     {
@@ -86,7 +86,7 @@ export default function Dashboard() {
       color: '#f59e0b',
       grad: 'linear-gradient(135deg,#f59e0b,#fbbf24)',
       icon: 'bi-funnel-fill',
-      trend: '+5%',
+
       sub: 'under review'
     },
     {
@@ -95,7 +95,7 @@ export default function Dashboard() {
       color: '#10b981',
       grad: 'linear-gradient(135deg,#06d6a0,#10b981)',
       icon: 'bi-award-fill',
-      trend: '+2%',
+
       sub: 'selected candidates'
     },
   ]
@@ -144,13 +144,13 @@ export default function Dashboard() {
                   }}>
                     <i className={`bi ${m.icon}`} />
                   </div>
-                  <span style={{
+                  {/* <span style={{
                     fontSize: '0.68rem', fontWeight: 700, padding: '3px 9px', borderRadius: 6,
                     background: 'rgba(6,214,160,0.12)', color: 'var(--rms-accent)',
                     border: '1px solid rgba(6,214,160,0.2)'
                   }}>
                     {m.trend}
-                  </span>
+                  </span> */}
                 </div>
                 <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#fff', fontFamily: 'Outfit, sans-serif', lineHeight: 1 }}>{m.val}</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--rms-text)', marginTop: 4 }}>{m.label}</div>
@@ -351,7 +351,7 @@ export default function Dashboard() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
-                
+                💡
               </div>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--rms-primary)', margin: 0 }}>HR Pro Tip</h3>
             </div>
