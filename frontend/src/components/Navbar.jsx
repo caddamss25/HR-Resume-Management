@@ -11,6 +11,10 @@ export default function Navbar({ onMenuClick }) {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [loadingNotifs, setLoadingNotifs] = useState(false)
+  const [dismissedIds, setDismissedIds] = useState(() => {
+    const saved = localStorage.getItem('rms_dismissed_notifs')
+    return saved ? JSON.parse(saved) : []
+  })
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && search.trim()) {
@@ -18,20 +22,37 @@ export default function Navbar({ onMenuClick }) {
     }
   }
 
-  useEffect(() => {
-    async function fetchNotifications() {
-      setLoadingNotifs(true)
-      try {
-        const res = await api.get('/api/resumes/recent?count=5')
-        setNotifications(res.data)
-      } catch (err) {
-        console.error('Failed to fetch notifications:', err)
-      } finally {
-        setLoadingNotifs(false)
-      }
+  const fetchNotifications = async () => {
+    setLoadingNotifs(true)
+    try {
+      const res = await api.get('/api/resumes/recent?count=10')
+      // Filter out dismissed notifications
+      const active = res.data.filter(n => !dismissedIds.includes(n.id)).slice(0, 5)
+      setNotifications(active)
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err)
+    } finally {
+      setLoadingNotifs(false)
     }
+  }
+
+  useEffect(() => {
     fetchNotifications()
-  }, [])
+  }, [dismissedIds])
+
+  const dismissNotification = (e, id) => {
+    e.stopPropagation()
+    const newDismissed = [...dismissedIds, id]
+    setDismissedIds(newDismissed)
+    localStorage.setItem('rms_dismissed_notifs', JSON.stringify(newDismissed))
+  }
+
+  const clearAllNotifications = () => {
+    const allIds = notifications.map(n => n.id)
+    const newDismissed = [...dismissedIds, ...allIds]
+    setDismissedIds(newDismissed)
+    localStorage.setItem('rms_dismissed_notifs', JSON.stringify(newDismissed))
+  }
 
   return (
     <div className="rms-topbar">
@@ -108,13 +129,23 @@ export default function Navbar({ onMenuClick }) {
                 padding: '14px 18px', borderBottom: '1px solid var(--rms-border)',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center'
               }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Notifications</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Notifications</span>
+                  {notifications.length > 0 && (
+                    <span style={{
+                      fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                      background: 'rgba(6,214,160,0.12)', color: 'var(--rms-accent)',
+                      border: '1px solid rgba(6,214,160,0.2)'
+                    }}>{notifications.length} NEW</span>
+                  )}
+                </div>
                 {notifications.length > 0 && (
-                  <span style={{
-                    fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6,
-                    background: 'rgba(6,214,160,0.12)', color: 'var(--rms-accent)',
-                    border: '1px solid rgba(6,214,160,0.2)'
-                  }}>{notifications.length} NEW</span>
+                  <button 
+                    onClick={clearAllNotifications}
+                    style={{ background: 'none', border: 'none', color: 'var(--rms-primary)', fontSize: '0.75rem', fontWeight: 600, padding: 0, cursor: 'pointer' }}
+                  >
+                    Clear All
+                  </button>
                 )}
               </div>
 
@@ -130,14 +161,17 @@ export default function Navbar({ onMenuClick }) {
                   </div>
                 ) : (
                   notifications.map((n, i) => (
-                    <div key={n.id} style={{
-                      display: 'flex', alignItems: 'flex-start', gap: 12,
-                      padding: '12px 18px',
-                      borderBottom: i < notifications.length - 1 ? '1px solid var(--rms-border)' : 'none',
-                      cursor: 'pointer', transition: 'background 0.15s'
-                    }}
+                    <div key={n.id} 
+                      className="rms-notif-item"
+                      style={{
+                        display: 'flex', alignItems: 'flex-start', gap: 12,
+                        padding: '12px 18px',
+                        borderBottom: i < notifications.length - 1 ? '1px solid var(--rms-border)' : 'none',
+                        cursor: 'pointer', transition: 'background 0.15s',
+                        position: 'relative'
+                      }}
                       onClick={() => {
-                        navigate('/dashboard') // Or to specific candidate
+                        navigate('/dashboard')
                         setNotifOpen(false)
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--rms-surface-2)'}
@@ -151,12 +185,27 @@ export default function Navbar({ onMenuClick }) {
                       }}>
                         <i className={`bi ${n.resumeStatus === 'SELECTED' ? 'bi-award-fill' : 'bi-file-earmark-person-fill'}`} />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: 20 }}>
                         <div style={{ fontSize: '0.8rem', color: 'var(--rms-text)', lineHeight: 1.4 }}>
                           <strong>{n.candidateName || n.fileName?.split('.')[0]}</strong> has been updated to <strong>{n.resumeStatus?.replace(/_/g, ' ')}</strong>
                         </div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--rms-text-dim)', marginTop: 2 }}>{timeAgo(n.uploadedAt)}</div>
                       </div>
+                      
+                      {/* Individual Clear Button */}
+                      <button 
+                        className="rms-notif-remove"
+                        onClick={(e) => dismissNotification(e, n.id)}
+                        style={{
+                          position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                          width: 24, height: 24, borderRadius: '50%', background: 'var(--rms-surface-2)',
+                          border: '1px solid var(--rms-border)', color: 'var(--rms-text-muted)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <i className="bi bi-x" />
+                      </button>
                     </div>
                   ))
                 )}
